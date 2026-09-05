@@ -1,5 +1,4 @@
 import { CacheChoiceState, HealingChannel, type CacheUpgrade } from './ActionState';
-import type { WeaponKind } from './Combat';
 
 export type RunMode = 'title' | 'playing' | 'paused' | 'dead' | 'won';
 export type CooldownName = 'dash' | 'heal' | 'hurt' | 'ability';
@@ -14,7 +13,6 @@ export class RunRules {
   shards = 0;
   kills = 0;
   weaponLevel = 1;
-  currentWeapon: WeaponKind = 'pipe';
   stage = 0;
   elapsed = 0;
   private now = 0;
@@ -33,7 +31,6 @@ export class RunRules {
     this.shards = 0;
     this.kills = 0;
     this.weaponLevel = 1;
-    this.currentWeapon = 'pipe';
     this.stage = 0;
     this.elapsed = 0;
     this.now = 0;
@@ -130,11 +127,6 @@ export class RunRules {
   }
 
   useAbility(): boolean { return this.useCooldown('ability', ABILITY_COOLDOWN_MS); }
-
-  switchWeapon(): WeaponKind {
-    if (this.mode === 'playing') this.currentWeapon = this.currentWeapon === 'pipe' ? 'heavy' : 'pipe';
-    return this.currentWeapon;
-  }
 
   openCacheChoice(cacheId: string): boolean {
     return this.mode === 'playing' && this.cacheChoice.open(cacheId);

@@ -23,7 +23,7 @@ try {
   await page.waitForTimeout(150);
   const health = await page.locator('#health-label').innerText();
   if (health !== '100 / 100') throw new Error(`Restart health: ${health}`);
-  await page.screenshot({ path: '.artifacts/production-v03.png' });
+  await page.screenshot({ path: '.artifacts/production-v04.png' });
   if (errors.length || failedRequests.length) throw new Error(JSON.stringify({ errors, failedRequests }));
   console.log(JSON.stringify({ productionSmoke: 'passed', start: true, input: true, pause: true, restart: true, health, devHandleAbsent: true, errors, failedRequests }));
 } finally {

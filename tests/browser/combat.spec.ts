@@ -19,7 +19,7 @@ async function placeAtWalker(page: import('@playwright/test').Page) {
 
 test('a held J produces one real swing hit, and a post-dash swing still damages', async ({ page }) => {
   await start(page);
-  expect(await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').combatEffects.blade.texture.key)).toBe('weapon');
+  expect(await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').player.texture.key)).toBe('hero-full');
   const before = await placeAtWalker(page);
   await page.keyboard.down('KeyJ');
   await page.waitForTimeout(420);
@@ -63,7 +63,7 @@ test('a disabled shake setting suppresses a confirmed third-hit shake', async ({
     return scene.attack.state.step === 3 && scene.attack.state.phase === 'active';
   }), { timeout: 2000 }).toBe(true);
   expect(await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').__combatShakeCalls)).toBe(0);
-  await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').enemies.getChildren().find((item: any) => item.id === 'yard-walker-1').hp), { timeout: 1000 }).toBe(39);
+  await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').enemies.getChildren().find((item: any) => item.id === 'yard-walker-1').hp), { timeout: 1000 }).toBe(36);
 });
 
 test('pause during confirmed hitstop remains paused after the timer would have elapsed', async ({ page }) => {
@@ -113,6 +113,8 @@ test('the rendered strike segment follows the player and only hits a body it act
     scene.resolveActiveAttack();
     const afterMiss = enemy.hp;
     enemy.body.reset((after.x1 + after.x2) / 2, (after.y1 + after.y2) / 2);
+    // Phaser reset uses the full frame's top-left until the next body sync.
+    enemy.body.updateFromGameObject();
     scene.resolveActiveAttack();
     return { beforeX: before.x1, afterX: after.x1, beforeHp, afterMiss, afterHit: enemy.hp };
   });

@@ -1,6 +1,6 @@
 # Art and audio provenance
 
-All final assets are local in `public/assets`. Generated using the built-in imagegen tool, 2026-09-05. The supplied personal photograph is a reference only, never included in the web build. Generated art is not claimed to be third-party stock or licensed Dead Cells content.
+All final assets are local in `public/assets`. Generated using the built-in imagegen tool, 2026-09-05 and 2026-09-06. The supplied personal photograph is a reference only, never included in the web build. Generated art is not claimed to be third-party stock or licensed Dead Cells content.
 
 | Asset | Role | Import |
 | --- | --- | --- |
@@ -38,3 +38,19 @@ Four original enemies in a single row on solid magenta: soaked supernatural work
 ## Validation
 
 Runtime import removes the color key (including edge fringe), keeps facial and clothing details, uses nearest-neighbor scaling, and aligns hero feet to frame y=77. Raw source files intentionally retain the color-key background. Assets can be regenerated without online dependencies in the game itself; new AI generation is an authoring task only.
+
+## Version 0.4 full-body animation sheets
+
+Created with the built-in imagegen tool, using the existing photo-derived hero and enemy art as identity references. Original sheets are preserved; the photograph is not shipped. The complete final prompt set, including the combat-sheet background correction, is in [SPRITE-PROMPTS-0.4.json](docs/SPRITE-PROMPTS-0.4.json).
+
+| Saved source | Frames | Role |
+| --- | ---: | --- |
+| `public/assets/hero-locomotion-v4-source.png` | 8 | 2 idle, 6 run; pipe held in hands |
+| `public/assets/hero-combat-v4-source.png` | 16 | Three forward strikes × 4 poses; 4 kick poses |
+| `public/assets/hero-actions-v4-source.png` | 16 | Roll, heal, hurt/death, jump/landing |
+| `public/assets/enemy-animation-v4-source.png` | 16 | Walker walk/attack, spitter cast, hound charge |
+| `public/assets/boss-animation-v4-source.png` | 12 | Walk/stagger, anchor slam, projectile volley |
+
+Standard deterministic import: chroma key, connected-component slicing, nearest-neighbor resizing, foot/root registration, one-pixel rim, frame packing. This does not generate or redraw limbs. The boss source's left-facing idle/slam frames are flipped during import, while its right-facing cast frames are retained. Isolated background motes are omitted; normal game particles handle impacts and projectiles.
+
+Hero atlas: 1536×720, 40 frames of 192×144, feet at (96,128). Hero scale and origin preserve the old 20.625×41.25-world-pixel Arcade body. Enemy/boss atlases use 128×128 frames, feet at (64,112). Source-pixel hand/tip/boot contacts and per-pose anchors live in `src/game/spriteFrames.ts`. No per-frame normalization that would enlarge a crouching head. Runtime requires no AI service.

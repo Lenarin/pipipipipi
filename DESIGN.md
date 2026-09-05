@@ -18,12 +18,14 @@ Phaser 4 rendering at 640 by 360 logical game resolution and nearest-neighbor sc
 
 ## Tone and combat
 
-Dry municipal black comedy lives in shop signs, enemy names and short result copy. Keep moment-to-moment instructions literal. Combat has visible anticipation, thin blade trails, directional contact sparks, brief hitstop, stagger and a heavier third strike. Warm danger cues and pale mint player attacks must remain distinguishable; effects never become opaque disks over the fight.
+Dry municipal black comedy lives in shop signs, enemy names and short result copy. Keep moment-to-moment instructions literal. Combat has visible anticipation, whole-body sprite keyframes, directional contact sparks, brief hitstop, stagger and a heavier third strike. Warm danger cues and pale mint player attacks must remain distinguishable; effects never become opaque disks over the fight.
 
 ## Interaction
 
 Mint primary action, amber interact prompts, rust-red damage. Menus use semantic HTML buttons. Combat UI only shows health, healing charges, weapon, progress and the current objective. Screen overlays handle title, pause, death and victory.
 
-The compact combat strip names the current weapon instead of showing only a numeral. It also states the R switch, F kick cooldown, Q healing channel, and Shift dash state in text, never colour alone. During the committed active stroke of the heavy tool, the dash label explains whether a request is waiting for the legal cancel window.
+The compact combat strip names the single pipe, its upgrade level and the 1–1–2 damage combo. F kick cooldown, Q healing channel and Shift dash state are text, never colour alone. There is no weapon switch. All three strokes make contact in front; the third has double damage and a longer recovery. A ready dash can cancel any pipe phase.
+
+Full-body sprites own the arms, legs and pipe; do not overlay line-drawn limbs or stretch/rotate the standing sprite to simulate attacks. Contact markers come from the selected source pose. Idle/run/death use Phaser animations; combat, kick, healing and enemy commitments select keyframes from their authoritative action phase. Freeze those phases on pause/focus loss and hitstop. Collision bodies retain fixed dimensions across poses. Ordinary enemy melee ranges match their hands/jaws; the boss anchor additionally sends a visibly marked ground shockwave.
 
 A cache opens an inline choice tray inside the game shell. Its two semantic buttons preview damage +6 or maximum health +20, including the shared flask recovery. Keyboard alternatives 1 and 2 are visible; Escape cancels. The tray freezes combat and clears held input before returning to play, without becoming a generic page modal.

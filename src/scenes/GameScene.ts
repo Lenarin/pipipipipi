@@ -4,7 +4,7 @@ import { decorateLevel, drawPlatform } from '../game/art';
 import { CombatEffects } from '../game/CombatEffects';
 import { EnemyAttackPresentation } from '../game/EnemyAttackPresentation';
 import { KickAction } from '../gameplay/ActionState';
-import { AttackChain, WEAPON_PROFILES } from '../gameplay/Combat';
+import { AttackChain } from '../gameplay/Combat';
 import { Enemy, type EnemyEvent } from '../gameplay/Enemy';
 import { Player } from '../gameplay/Player';
 import { RunRules } from '../gameplay/Rules';
@@ -24,7 +24,7 @@ export class GameScene extends Phaser.Scene {
   private gate!: Phaser.GameObjects.Rectangle | Phaser.GameObjects.Image;
   private caches: CacheVisual[] = [];
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-  private keys!: Record<'left' | 'right' | 'jump' | 'jumpAlt' | 'attack' | 'dash' | 'dashAlt' | 'heal' | 'ability' | 'swap' | 'interact' | 'pause', Phaser.Input.Keyboard.Key>;
+  private keys!: Record<'left' | 'right' | 'jump' | 'jumpAlt' | 'attack' | 'dash' | 'dashAlt' | 'heal' | 'ability' | 'interact' | 'pause', Phaser.Input.Keyboard.Key>;
   private snapshotMs = 0;
   private readonly attack = new AttackChain();
   private readonly kick = new KickAction(160);
@@ -58,7 +58,7 @@ export class GameScene extends Phaser.Scene {
   create(): void {
     this.cursors = this.input.keyboard!.createCursorKeys();
     this.keys = this.input.keyboard!.addKeys({
-      left: 'A', right: 'D', jump: 'SPACE', jumpAlt: 'W', attack: 'J', dash: 'SHIFT', dashAlt: 'K', heal: 'Q', ability: 'F', swap: 'R', interact: 'E', pause: 'ESC',
+      left: 'A', right: 'D', jump: 'SPACE', jumpAlt: 'W', attack: 'J', dash: 'SHIFT', dashAlt: 'K', heal: 'Q', ability: 'F', interact: 'E', pause: 'ESC',
     }) as GameScene['keys'];
     this.buildStage(0);
     this.physics.pause();
@@ -81,20 +81,14 @@ export class GameScene extends Phaser.Scene {
     const dashPressedNow = Phaser.Input.Keyboard.JustDown(this.keys.dash) || Phaser.Input.Keyboard.JustDown(this.keys.dashAlt);
     const healPressed = Phaser.Input.Keyboard.JustDown(this.keys.heal);
     const abilityPressed = Phaser.Input.Keyboard.JustDown(this.keys.ability);
-    const swapPressed = Phaser.Input.Keyboard.JustDown(this.keys.swap);
     const movementHeld = Boolean(movementFacing);
     if (healPressed) this.tryHeal();
-    if (movementHeld || attackPressed || dashPressedNow || jumpPressedNow || abilityPressed || swapPressed) this.cancelHealing();
-    if (swapPressed) {
-      const weapon = this.rules.switchWeapon();
-      this.setMessage(weapon === 'pipe' ? 'Оружие: быстрая труба' : 'Оружие: длинная кувалда, удар обжалованию не подлежит');
-    }
+    if (movementHeld || attackPressed || dashPressedNow || jumpPressedNow || abilityPressed) this.cancelHealing();
     if (abilityPressed) this.tryKick();
     if (attackPressed) this.queueAttack(movementFacing);
     if (jumpPressedNow) this.jumpBufferMs = 120;
-    if (dashPressedNow) this.dashBufferMs = this.attack.activeWeapon === 'heavy' && this.attack.state.phase === 'active' ? 320 : 130;
-    const heavyActiveDuringHitStop = this.attack.activeWeapon === 'heavy' && this.attack.state.phase === 'active';
-    const dashDuringHitStop = this.hitStopActive && !heavyActiveDuringHitStop && this.dashBufferMs > 0 && this.rules.dashReady;
+    if (dashPressedNow) this.dashBufferMs = 130;
+    const dashDuringHitStop = this.hitStopActive && this.dashBufferMs > 0 && this.rules.dashReady && !this.kick.active;
     if (this.hitStopActive && !dashDuringHitStop) return;
     if (dashDuringHitStop) {
       this.cancelHitStop();
@@ -104,8 +98,7 @@ export class GameScene extends Phaser.Scene {
     }
     const delta = Math.min(Math.max(rawDelta, 0), 50);
     this.rules.tick(delta);
-    const heavyCommitted = this.attack.activeWeapon === 'heavy' && this.attack.state.phase === 'active';
-    const dashReady = this.dashBufferMs > 0 && !heavyCommitted && !this.kick.active && this.rules.useCooldown('dash', 750);
+    const dashReady = this.dashBufferMs > 0 && !this.kick.active && this.rules.useCooldown('dash', 750);
     if (dashReady) { this.dashBufferMs = 0; this.cancelAttack(); }
     else this.dashBufferMs = Math.max(0, this.dashBufferMs - delta);
     const attackEvents = this.attack.advance(delta, movementFacing);
@@ -121,8 +114,7 @@ export class GameScene extends Phaser.Scene {
     if (step.jumped) this.playSound('jump');
     if (step.dashed) { this.rules.grantImmunity(190); this.combatEffects.dashBurst(this.player.x, this.player.y, this.player.facing); this.playSound('dash'); }
     if (step.dashEnded) this.combatEffects.dashBurst(this.player.x, this.player.y, this.player.facing, true);
-    const shownWeapon = this.attack.state.phase === 'idle' ? this.rules.currentWeapon : this.attack.activeWeapon;
-    this.combatEffects.update(this.player, this.attack.state, this.attack.phaseProgress, this.attack.currentProfile, shownWeapon);
+    this.combatEffects.update(this.player, this.attack.state, this.attack.phaseProgress, this.attack.currentProfile);
     this.resolveAttackEvents(attackEvents);
     this.resolveActiveAttack();
     this.combatEffects.updateKick(this.player, this.kick);
@@ -185,7 +177,7 @@ export class GameScene extends Phaser.Scene {
     this.combatEffects = new CombatEffects(this);
     this.player.play('hero-idle');
     if (this.rules.mode === 'title') {
-      this.player.setPosition(485, 267).setDisplaySize(76, 95);
+      this.player.setPosition(485, 267).setScale(95 / 80);
       this.cameras.main.stopFollow();
       this.cameras.main.setScroll(0, 0);
     } else {
@@ -203,7 +195,7 @@ export class GameScene extends Phaser.Scene {
       ? this.add.image(data.x, data.y, data.upgrade === 'health' ? 'cache-health' : 'cache-damage').setDepth(3)
       : this.add.rectangle(data.x, data.y, 20, 25, 0x8eb8b2, 0.95).setDepth(3) }));
     this.gate = this.textures.exists('exit-gate') ? this.add.image(this.level.exitX, 270, 'exit-gate').setDepth(3) : this.add.rectangle(this.level.exitX, 270, 24, 82, 0xb8d0d3, 0.85).setDepth(3);
-    this.combatEffects.update(this.player, this.attack.state, this.attack.phaseProgress, undefined, this.rules.currentWeapon);
+    this.combatEffects.update(this.player, this.attack.state, this.attack.phaseProgress);
     this.interactPrompt = this.add.text(0, 0, '', { fontFamily: 'Arial', fontSize: '11px', color: '#f5e4b7', stroke: '#14242d', strokeThickness: 3 }).setOrigin(0.5).setDepth(16).setVisible(false);
     this.physics.add.collider(this.player, this.platforms, undefined, (_player, platform) => this.canLandOnPlatform(platform as Phaser.Physics.Arcade.Image));
     this.physics.add.collider(this.enemies, this.platforms);
@@ -227,14 +219,16 @@ export class GameScene extends Phaser.Scene {
   }
 
   private queueAttack(intent = this.movementIntent()): void {
+    if (this.kick.active || this.player.isDashing || this.player.isHurt) return;
     const wasIdle = this.attack.state.phase === 'idle';
-    if (!this.attack.request(intent ?? this.player.facing, WEAPON_PROFILES[this.rules.currentWeapon])) return;
+    if (!this.attack.request(intent ?? this.player.facing)) return;
     if (wasIdle) this.player.beginAttack();
   }
 
   private cancelAttack(): void {
     this.attack.cancel();
     this.activeSwing = null;
+    this.combatEffects?.clear();
   }
 
   private resolveAttackEvents(events: ReturnType<AttackChain['advance']>): void {
@@ -334,7 +328,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onPlayerHurt(): void {
-    this.cancelHealing();
+    this.cancelPlayerActions();
+    this.player.showHurt();
     this.playSound('hit');
     if (this.shakeEnabled) this.cameras.main.shake(85, 0.008);
     this.player.setTint(0xff8f8f);
@@ -382,10 +377,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private tryKick(): void {
-    if (this.attack.activeWeapon === 'heavy' && this.attack.state.phase === 'active') {
-      this.setMessage('Пинок недоступен во время удара кувалдой', 900);
-      return;
-    }
+    if (this.player.isDashing || this.player.isHurt) return;
     if (!this.rules.useAbility()) { this.setMessage('Пинок ещё на согласовании', 900); return; }
     this.cancelAttack();
     this.kick.begin(this.player.facing);
@@ -473,7 +465,9 @@ export class GameScene extends Phaser.Scene {
   private onDeath(): void {
     this.cancelPlayerActions(); this.cancelEnemyActions(); this.cancelHitStop();
     this.setMessage('Вы пали. Нажмите «Заново»', Number.POSITIVE_INFINITY);
-    this.physics.pause(); this.tweens.pauseAll(); this.time.paused = true; this.pauseActorAnimations(); this.clearInput(); this.emitState();
+    this.physics.pause(); this.tweens.pauseAll(); this.time.paused = true; this.pauseActorAnimations();
+    this.player.anims.resume(); this.player.play('hero-death').setAlpha(1);
+    this.clearInput(); this.emitState();
   }
   private onVictory(): void {
     this.cancelPlayerActions(); this.cancelEnemyActions(); this.cancelHitStop();
@@ -550,7 +544,7 @@ export class GameScene extends Phaser.Scene {
   private snapshot(): GameSnapshot {
     const boss = this.enemies?.getChildren().map((child) => child as Enemy).find((enemy) => enemy.kind === 'boss');
     const bossVisible = Boolean(boss?.engaged);
-    return { mode: this.rules.mode, stage: this.rules.stage, location: this.level?.name ?? 'Двор после дождя', hp: this.rules.hp, maxHp: this.rules.maxHp, flasks: this.rules.flasks, kills: this.rules.kills, totalEnemies: this.level?.enemies.length ?? 0, shards: this.rules.shards, elapsed: Math.floor(this.rules.elapsed / 1000), dashReady: this.rules.dashReady, bossHp: bossVisible ? boss!.hp : 0, bossMaxHp: bossVisible ? boss!.maxHp : 0, objective: this.enemies?.countActive(true) ? 'Очистите путь к выходу' : 'E у ворот', message: this.rules.mode === 'title' || this.rules.elapsed < this.messageUntil ? this.message : '', weaponLevel: this.rules.weaponLevel, weapon: this.rules.currentWeapon, healing: this.rules.healing, healingProgress: this.rules.healingProgress, abilityReady: this.rules.abilityReady, abilityCooldownProgress: this.rules.abilityCooldownProgress, heavyCommitted: this.attack.activeWeapon === 'heavy' && this.attack.state.phase === 'active', dashBuffered: this.dashBufferMs > 0, cacheChoiceOpen: this.rules.cacheChoiceOpen };
+    return { mode: this.rules.mode, stage: this.rules.stage, location: this.level?.name ?? 'Двор после дождя', hp: this.rules.hp, maxHp: this.rules.maxHp, flasks: this.rules.flasks, kills: this.rules.kills, totalEnemies: this.level?.enemies.length ?? 0, shards: this.rules.shards, elapsed: Math.floor(this.rules.elapsed / 1000), dashReady: this.rules.dashReady, bossHp: bossVisible ? boss!.hp : 0, bossMaxHp: bossVisible ? boss!.maxHp : 0, objective: this.enemies?.countActive(true) ? 'Очистите путь к выходу' : 'E у ворот', message: this.rules.mode === 'title' || this.rules.elapsed < this.messageUntil ? this.message : '', weaponLevel: this.rules.weaponLevel, healing: this.rules.healing, healingProgress: this.rules.healingProgress, abilityReady: this.rules.abilityReady, abilityCooldownProgress: this.rules.abilityCooldownProgress, cacheChoiceOpen: this.rules.cacheChoiceOpen };
   }
   private emitState(): void { bridge.emit('state', this.snapshot()); }
   private cleanUp(): void {

@@ -9,7 +9,7 @@ page.on('pageerror', error => errors.push(error.message));
 const read = () => page.evaluate(() => {
   const s = window.__GAME__.scene.getScene('Game');
   const e = s.enemies.getChildren().find(e => e.id === 'yard-walker-1');
-  return { x: s.player.x, hp: s.rules.hp, weapon: s.rules.currentWeapon,
+  return { x: s.player.x, hp: s.rules.hp, weapon: 'pipe',
     abilityReady: s.rules.abilityReady, kick: s.kick.active,
     enemy: { x: e.x, hp: e.hp, state: e.state }, attack: s.attack.state.phase };
 });
@@ -25,9 +25,8 @@ async function until(predicate, timeout = 6000) {
 try {
   await page.goto('http://127.0.0.1:5173');
   await page.getByRole('button', { name: /ВОЙТИ В ГОРОД/ }).click();
-  await page.keyboard.press('KeyR', { delay: 30 });
   await page.keyboard.down('KeyD');
-  const before = await until(s => s.enemy.state === 'windup' && s.enemy.x - s.x < 53);
+  const before = await until(s => s.enemy.state === 'windup' && s.enemy.x - s.x < 44);
   await page.keyboard.up('KeyD');
   await page.keyboard.press('KeyF', { delay: 30 });
   const kicked = await until(s => s.enemy.state === 'stagger', 1000);
@@ -38,9 +37,9 @@ try {
   await until(s => !s.kick);
   await page.keyboard.press('KeyJ', { delay: 30 });
   await until(s => s.attack === 'windup');
-  await page.screenshot({ path: '.artifacts/tactics-v03-heavy.png' });
+  await page.screenshot({ path: '.artifacts/tactics-v04-pipe.png' });
   const weaponLabel = await page.locator('#weapon-label').innerText();
-  if (!weaponLabel.includes('КУВАЛДА')) throw new Error(`Missing heavy label: ${weaponLabel}`);
+  if (!weaponLabel.includes('ТРУБА')) throw new Error(`Missing pipe label: ${weaponLabel}`);
 
   // From here onwards this is a cache position fixture.
   await page.keyboard.press('Escape');

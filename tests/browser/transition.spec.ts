@@ -16,6 +16,8 @@ test('a lethal active hit at the gate can transition in the same frame without f
     scene.player.body.reset(scene.level.exitX - 42, 280);
     scene.player.facing = 1;
     target.body.reset(scene.player.x + 34, scene.player.y);
+    // Synchronize the wide atlas frame's body offset before same-frame collision assertions.
+    target.body.updateFromGameObject();
     target.body.moves = false;
     target.hp = scene.rules.damage;
 

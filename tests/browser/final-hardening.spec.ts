@@ -20,13 +20,13 @@ test('M toggles sound from the title and from paused gameplay', async ({ page })
 
 test('a failed visual asset offers retry and recovers on reload', async ({ page }) => {
   let shouldFail = true;
-  await page.route('**/assets/hero-source.png', async route => {
+  await page.route('**/assets/hero-locomotion-v4-source.png', async route => {
     if (shouldFail) await route.abort();
     else await route.continue();
   });
   await page.goto('/');
   await expect(page.getByRole('button', { name: /ПОВТОРИТЬ ЗАГРУЗКУ/ })).toBeEnabled();
-  await expect(page.locator('#loading-status')).toHaveText(/hero-source/);
+  await expect(page.locator('#loading-status')).toHaveText(/hero-locomotion-source/);
   shouldFail = false;
   await page.getByRole('button', { name: /ПОВТОРИТЬ ЗАГРУЗКУ/ }).click();
   await expect(page.getByRole('button', { name: /ВОЙТИ В ГОРОД/ })).toBeEnabled();

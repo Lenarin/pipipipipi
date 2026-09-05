@@ -1,7 +1,6 @@
-/** Framework-independent timing for the player's deliberately committal three-hit chain. */
+/** Framework-independent timing for the player's buffered, dash-cancellable three-hit chain. */
 export type AttackPhase = 'idle' | 'windup' | 'active' | 'recovery';
 export type AttackFacing = 1 | -1;
-export type WeaponKind = 'pipe' | 'heavy';
 
 export interface AttackProfile {
   windupMs: number;
@@ -10,12 +9,6 @@ export interface AttackProfile {
   damageMultiplier: number;
   reach: number;
   lunge: number;
-}
-
-export interface WeaponProfile {
-  kind: WeaponKind;
-  label: string;
-  attacks: readonly AttackProfile[];
 }
 
 export interface AttackState {
@@ -30,22 +23,11 @@ export type AttackEvent =
   | { type: 'recovery'; step: number; facing: AttackFacing }
   | { type: 'idle' };
 
-export const WEAPON_PROFILES: Readonly<Record<WeaponKind, WeaponProfile>> = {
-  pipe: {
-    kind: 'pipe', label: 'ТРУБА', attacks: [
-      { windupMs: 65, activeMs: 70, recoveryMs: 120, damageMultiplier: 1, reach: 64, lunge: 42 },
-      { windupMs: 75, activeMs: 75, recoveryMs: 130, damageMultiplier: 1.2, reach: 72, lunge: 56 },
-      { windupMs: 110, activeMs: 100, recoveryMs: 220, damageMultiplier: 1.6, reach: 88, lunge: 78 },
-    ],
-  },
-  heavy: {
-    kind: 'heavy', label: 'КУВАЛДА', attacks: [
-      { windupMs: 145, activeMs: 125, recoveryMs: 250, damageMultiplier: 1.45, reach: 96, lunge: 28 },
-      { windupMs: 165, activeMs: 135, recoveryMs: 280, damageMultiplier: 1.7, reach: 106, lunge: 34 },
-      { windupMs: 220, activeMs: 155, recoveryMs: 380, damageMultiplier: 2.25, reach: 118, lunge: 42 },
-    ],
-  },
-};
+export const PIPE_ATTACKS: readonly AttackProfile[] = [
+  { windupMs: 65, activeMs: 70, recoveryMs: 120, damageMultiplier: 1, reach: 45, lunge: 42 },
+  { windupMs: 75, activeMs: 75, recoveryMs: 130, damageMultiplier: 1, reach: 50, lunge: 56 },
+  { windupMs: 110, activeMs: 100, recoveryMs: 220, damageMultiplier: 2, reach: 42, lunge: 78 },
+];
 
 /**
  * An input may start an idle chain or buffer precisely one next swing. Facing is
@@ -54,10 +36,8 @@ export const WEAPON_PROFILES: Readonly<Record<WeaponKind, WeaponProfile>> = {
 export class AttackChain {
   state: AttackState = { phase: 'idle', step: 0, facing: 1, queued: false };
   currentProfile: AttackProfile | undefined;
-  activeWeapon: WeaponKind = 'pipe';
   private phaseRemainingMs = 0;
   private queuedFacing: AttackFacing | undefined;
-  private weaponProfile: WeaponProfile = WEAPON_PROFILES.pipe;
 
   get phaseProgress(): number {
     if (this.state.phase === 'idle' || !this.currentProfile) return 0;
@@ -66,14 +46,12 @@ export class AttackChain {
     return Math.min(1, Math.max(0, 1 - this.phaseRemainingMs / duration));
   }
 
-  request(facing: AttackFacing, weaponProfile: WeaponProfile = WEAPON_PROFILES.pipe): boolean {
+  request(facing: AttackFacing): boolean {
     if (this.state.phase === 'idle') {
-      this.weaponProfile = weaponProfile;
-      this.activeWeapon = weaponProfile.kind;
       this.start(1, facing);
       return true;
     }
-    if (!this.state.queued && this.state.step < this.weaponProfile.attacks.length) {
+    if (!this.state.queued && this.state.step < PIPE_ATTACKS.length) {
       this.state.queued = true;
       this.queuedFacing = facing;
       return true;
@@ -94,7 +72,7 @@ export class AttackChain {
         this.state.phase = 'recovery';
         this.phaseRemainingMs = this.currentProfile!.recoveryMs;
         events.push({ type: 'recovery', step: this.state.step, facing: this.state.facing });
-      } else if (this.state.queued && this.state.step < this.weaponProfile.attacks.length) {
+      } else if (this.state.queued && this.state.step < PIPE_ATTACKS.length) {
         this.start(this.state.step + 1, currentIntent ?? this.queuedFacing ?? this.state.facing);
       } else {
         this.state = { phase: 'idle', step: 0, facing: this.state.facing, queued: false };
@@ -112,12 +90,10 @@ export class AttackChain {
     this.currentProfile = undefined;
     this.phaseRemainingMs = 0;
     this.queuedFacing = undefined;
-    this.activeWeapon = 'pipe';
-    this.weaponProfile = WEAPON_PROFILES.pipe;
   }
 
   private start(step: number, facing: AttackFacing): void {
-    this.currentProfile = this.weaponProfile.attacks[step - 1];
+    this.currentProfile = PIPE_ATTACKS[step - 1];
     this.state = { phase: 'windup', step, facing, queued: false };
     this.phaseRemainingMs = this.currentProfile.windupMs;
     this.queuedFacing = undefined;

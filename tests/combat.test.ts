@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AttackChain, WEAPON_PROFILES } from '../src/gameplay/Combat';
+import { AttackChain, PIPE_ATTACKS } from '../src/gameplay/Combat';
 
 describe('AttackChain', () => {
   it('advances through the first swing windup, active, and recovery timings', () => {
@@ -42,7 +42,7 @@ describe('AttackChain', () => {
     chain.advance(75 + 75 + 130);
 
     expect(chain.state).toMatchObject({ phase: 'windup', step: 3, facing: -1 });
-    expect(chain.currentProfile).toMatchObject({ damageMultiplier: 1.6, reach: 88, lunge: 78, windupMs: 110, activeMs: 100, recoveryMs: 220 });
+    expect(chain.currentProfile).toMatchObject({ damageMultiplier: 2, reach: 42, lunge: 78, windupMs: 110, activeMs: 100, recoveryMs: 220 });
   });
 
   it('reverses a buffered second swing toward the latest attack intent', () => {
@@ -76,26 +76,8 @@ describe('AttackChain', () => {
     expect(chain.state.facing).toBe(-1);
   });
 
-  it('uses a fast close pipe and a slower longer heavy tool when a chain starts', () => {
-    const pipe = new AttackChain();
-    const heavy = new AttackChain();
-
-    pipe.request(1, WEAPON_PROFILES.pipe);
-    heavy.request(1, WEAPON_PROFILES.heavy);
-
-    expect(pipe.advance(65)).toEqual([{ type: 'active', step: 1, facing: 1 }]);
-    expect(heavy.advance(65)).toEqual([]);
-    expect(pipe.currentProfile?.reach).toBe(64);
-    expect(heavy.currentProfile?.reach).toBe(96);
-  });
-
-  it('does not replace the profile underneath a live swing when the selected weapon changes', () => {
-    const chain = new AttackChain();
-    chain.request(1, WEAPON_PROFILES.heavy);
-
-    chain.request(-1, WEAPON_PROFILES.pipe);
-
-    expect(chain.activeWeapon).toBe('heavy');
-    expect(chain.currentProfile?.reach).toBe(96);
+  it('keeps exactly one pipe profile with a double-damage third strike', () => {
+    expect(PIPE_ATTACKS).toHaveLength(3);
+    expect(PIPE_ATTACKS.map(profile => profile.damageMultiplier)).toEqual([1, 1, 2]);
   });
 });

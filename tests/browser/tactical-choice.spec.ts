@@ -30,63 +30,42 @@ test('Q channels healing, movement cancels it for free, and completion spends on
   expect(await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').rules.flasks)).toBe(1);
 });
 
-test('R changes the readable weapon and a heavy live swing keeps its committed profile', async ({ page }) => {
+test('R no longer switches weapons and the HUD describes the single pipe combo', async ({ page }) => {
   await start(page);
   await expect(page.locator('#weapon-label')).toContainText('ТРУБА');
   await page.keyboard.press('KeyR', { delay: 35 });
-  await expect(page.locator('#weapon-label')).toContainText('КУВАЛДА');
-  await page.keyboard.press('KeyJ', { delay: 35 });
-  await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').attack.activeWeapon)).toBe('heavy');
-
-  await page.keyboard.press('KeyR', { delay: 35 });
+  await expect(page.locator('#weapon-label')).toContainText('КОМБО 1–1–2');
+  await expect(page.locator('#weapon-label')).not.toContainText('КУВАЛДА');
   expect(await page.evaluate(() => {
-    const scene = (window as any).__GAME__.scene.getScene('Game');
-    return { selected: scene.rules.currentWeapon, active: scene.attack.activeWeapon, reach: scene.attack.currentProfile.reach };
-  })).toEqual({ selected: 'pipe', active: 'heavy', reach: 96 });
+    const s = (window as any).__GAME__.scene.getScene('Game');
+    return { swap: s.keys.swap, switchWeapon: typeof s.rules.switchWeapon };
+  })).toEqual({ swap: undefined, switchWeapon: 'undefined' });
 });
 
-test('a dash requested during the heavy active stroke waits for recovery and then fires', async ({ page }) => {
+test('a ready dash cancels a live pipe strike, including its hitstop', async ({ page }) => {
   await start(page);
-  await page.keyboard.press('KeyR', { delay: 35 });
-  await page.keyboard.press('KeyJ', { delay: 35 });
-  await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').attack.state.phase)).toBe('active');
-  await page.keyboard.down('KeyD');
-  await page.keyboard.press('ShiftLeft', { delay: 30 });
-  const committed = await page.evaluate(() => {
-    const scene = (window as any).__GAME__.scene.getScene('Game');
-    return { phase: scene.attack.state.phase, dashing: scene.player.isDashing, buffered: scene.dashBufferMs > 0 };
+  await page.evaluate(() => {
+    const s = (window as any).__GAME__.scene.getScene('Game');
+    s.attack.request(1); s.attack.advance(65); s.beginHitStop(350);
   });
-  expect(committed).toEqual({ phase: 'active', dashing: false, buffered: true });
-  await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').player.isDashing), { timeout: 700 }).toBe(true);
-  await page.keyboard.up('KeyD');
-});
-
-test('a buffered heavy dash does not erase hitstop before its legal cancel window', async ({ page }) => {
-  await start(page);
-  await page.keyboard.press('KeyR', { delay: 35 });
-  await page.keyboard.press('KeyJ', { delay: 35 });
-  await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').attack.state.phase)).toBe('active');
-  await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').beginHitStop(240));
   await page.keyboard.press('ShiftLeft', { delay: 30 });
-  await page.waitForTimeout(50);
-
   expect(await page.evaluate(() => {
-    const scene = (window as any).__GAME__.scene.getScene('Game');
-    return { hitStop: scene.hitStopActive, dashing: scene.player.isDashing, buffered: scene.dashBufferMs > 0 };
-  })).toEqual({ hitStop: true, dashing: false, buffered: true });
+    const s = (window as any).__GAME__.scene.getScene('Game');
+    return { phase: s.attack.state.phase, dashing: s.player.isDashing, hitstop: s.hitStopActive };
+  })).toEqual({ phase: 'idle', dashing: true, hitstop: false });
 });
 
-test('F cannot bypass a committed heavy active stroke or spend its cooldown', async ({ page }) => {
+test('F can cancel a pipe strike and consumes one kick cooldown', async ({ page }) => {
   await start(page);
-  await page.keyboard.press('KeyR', { delay: 35 });
-  await page.keyboard.press('KeyJ', { delay: 35 });
-  await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').attack.state.phase)).toBe('active');
-  await page.keyboard.press('KeyF', { delay: 10 });
-
+  await page.evaluate(() => {
+    const s = (window as any).__GAME__.scene.getScene('Game');
+    s.attack.request(1); s.attack.advance(65);
+  });
+  await page.keyboard.press('KeyF', { delay: 20 });
   expect(await page.evaluate(() => {
-    const scene = (window as any).__GAME__.scene.getScene('Game');
-    return { weapon: scene.attack.activeWeapon, phase: scene.attack.state.phase, kick: scene.kick.active, abilityReady: scene.rules.abilityReady };
-  })).toEqual({ weapon: 'heavy', phase: 'active', kick: false, abilityReady: true });
+    const s = (window as any).__GAME__.scene.getScene('Game');
+    return { phase: s.attack.state.phase, kick: s.kick.active, abilityReady: s.rules.abilityReady };
+  })).toEqual({ phase: 'idle', kick: true, abilityReady: false });
 });
 
 test('Q refuses to start during an attack, dash, kick, or already-held movement', async ({ page }) => {
@@ -149,7 +128,7 @@ test('F shows a connecting kick and interrupts an ordinary enemy windup', async 
     const bounds = scene.combatEffects.kickBounds;
     return { state: walker.state, visibleWidth: bounds?.width ?? 0, ready: scene.rules.abilityReady };
   })).toMatchObject({ state: 'stagger', ready: false });
-  expect(await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').combatEffects.kickBounds?.width ?? 0)).toBeGreaterThan(40);
+  expect(await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').combatEffects.kickBounds?.width ?? 0)).toBeGreaterThan(20);
 });
 
 test('cache tray pauses combat, applies one keyboard choice, and resets on replay', async ({ page }) => {

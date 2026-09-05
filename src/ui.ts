@@ -79,9 +79,9 @@ export function mountUI(game: Phaser.Game) {
     const weaponLabel = byId('weapon-label');
     weaponLabel.replaceChildren();
     const weaponName = document.createElement('b');
-    weaponName.textContent = state.weapon === 'heavy' ? 'КУВАЛДА' : 'ТРУБА';
-    weaponLabel.append(weaponName, ` · УР. ${state.weaponLevel} · R СМЕНИТЬ`);
-    byId('dash-label').textContent = state.heavyCommitted && state.dashBuffered ? 'SHIFT · РЫВОК В ОЧЕРЕДИ' : state.heavyCommitted ? 'SHIFT · ПОСЛЕ УДАРА' : state.dashReady ? 'SHIFT · РЫВОК ГОТОВ' : 'SHIFT · ВОССТАНОВЛЕНИЕ';
+    weaponName.textContent = 'ТРУБА';
+    weaponLabel.append(weaponName, ` · УР. ${state.weaponLevel} · КОМБО 1–1–2`);
+    byId('dash-label').textContent = state.dashReady ? 'SHIFT · РЫВОК ГОТОВ' : 'SHIFT · ВОССТАНОВЛЕНИЕ';
     byId('ability-label').textContent = state.abilityReady ? 'F · ПИНОК ГОТОВ' : `F · ПИНОК ${Math.ceil(state.abilityCooldownProgress * 100)}%`;
     byId('heal-label').textContent = state.healing ? `Q · ЛЕЧЕНИЕ ${Math.floor(state.healingProgress * 100)}%` : 'Q · ЛЕЧЕНИЕ 0,75 С';
     byId('run-timer').textContent = formatTime(state.elapsed);
