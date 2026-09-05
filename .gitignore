@@ -1,0 +1,11 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+.superpowers/
+.artifacts/
+.idea/
+.env
+.env.*
+!.env.example
+*.log
