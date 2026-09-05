@@ -24,10 +24,20 @@ export type AttackEvent =
   | { type: 'idle' };
 
 export const PIPE_ATTACKS: readonly AttackProfile[] = [
-  { windupMs: 65, activeMs: 70, recoveryMs: 120, damageMultiplier: 1, reach: 45, lunge: 42 },
-  { windupMs: 75, activeMs: 75, recoveryMs: 130, damageMultiplier: 1, reach: 50, lunge: 56 },
-  { windupMs: 110, activeMs: 100, recoveryMs: 220, damageMultiplier: 2, reach: 42, lunge: 78 },
+  { windupMs: 100, activeMs: 80, recoveryMs: 150, damageMultiplier: 1, reach: 45, lunge: 42 },
+  { windupMs: 120, activeMs: 80, recoveryMs: 170, damageMultiplier: 1, reach: 50, lunge: 56 },
+  { windupMs: 180, activeMs: 100, recoveryMs: 240, damageMultiplier: 2, reach: 42, lunge: 78 },
 ];
+
+/** Attack-only weight; normal walking remains immediately responsive. */
+export function attackVelocity(peak: number, phase: AttackPhase, progress: number, facing: AttackFacing, direction: number): number {
+  const p = Math.min(1, Math.max(0, progress));
+  if (direction !== 0 && direction !== facing) return direction * 90;
+  if (phase === 'windup') return direction * 70 * (1 - p);
+  const envelope = phase === 'active' ? (p < .25 ? Math.sin(p * Math.PI * 2) : 1 - (p - .25))
+    : phase === 'recovery' ? .25 * (1 - p) ** 2 : 0;
+  return facing * peak * envelope;
+}
 
 /**
  * An input may start an idle chain or buffer precisely one next swing. Facing is
@@ -38,6 +48,7 @@ export class AttackChain {
   currentProfile: AttackProfile | undefined;
   private phaseRemainingMs = 0;
   private queuedFacing: AttackFacing | undefined;
+  private queuedMs = 0;
 
   get phaseProgress(): number {
     if (this.state.phase === 'idle' || !this.currentProfile) return 0;
@@ -51,10 +62,12 @@ export class AttackChain {
       this.start(1, facing);
       return true;
     }
-    if (!this.state.queued && this.state.step < PIPE_ATTACKS.length) {
+    if (this.state.step < PIPE_ATTACKS.length) {
+      const accepted = !this.state.queued;
       this.state.queued = true;
       this.queuedFacing = facing;
-      return true;
+      this.queuedMs = 180;
+      return accepted;
     }
     return false;
   }
@@ -63,6 +76,7 @@ export class AttackChain {
     let remaining = Math.max(0, deltaMs);
     const events: AttackEvent[] = [];
     while (this.state.phase !== 'idle' && remaining >= this.phaseRemainingMs) {
+      this.ageQueue(this.phaseRemainingMs);
       remaining -= this.phaseRemainingMs;
       if (this.state.phase === 'windup') {
         this.state.phase = 'active';
@@ -81,7 +95,7 @@ export class AttackChain {
         events.push({ type: 'idle' });
       }
     }
-    if (this.state.phase !== 'idle') this.phaseRemainingMs -= remaining;
+    if (this.state.phase !== 'idle') { this.ageQueue(remaining); this.phaseRemainingMs -= remaining; }
     return events;
   }
 
@@ -90,6 +104,12 @@ export class AttackChain {
     this.currentProfile = undefined;
     this.phaseRemainingMs = 0;
     this.queuedFacing = undefined;
+    this.queuedMs = 0;
+  }
+
+  private ageQueue(delta: number): void {
+    this.queuedMs = Math.max(0, this.queuedMs - delta);
+    if (this.queuedMs === 0) { this.state.queued = false; this.queuedFacing = undefined; }
   }
 
   private start(step: number, facing: AttackFacing): void {
@@ -97,5 +117,6 @@ export class AttackChain {
     this.state = { phase: 'windup', step, facing, queued: false };
     this.phaseRemainingMs = this.currentProfile.windupMs;
     this.queuedFacing = undefined;
+    this.queuedMs = 0;
   }
 }

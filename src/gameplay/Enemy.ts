@@ -49,6 +49,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private cooldownMs = 500;
   private hitLockMs = 0;
   private staggerMs = 0;
+  private staggerDuration = 180;
+  private recoilVelocity = 0;
   private healthBarMs = 0;
   private nextBossAttack: EnemyAttack = 'boss-slam';
 
@@ -81,6 +83,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     if (this.staggerMs > 0) {
       this.staggerMs = Math.max(0, this.staggerMs - delta);
+      body.setVelocityX(this.recoilVelocity * (this.staggerMs / this.staggerDuration) ** 2);
       if (this.staggerMs <= 0) { this.state = 'idle'; this.setAngle(0); }
       return [];
     }
@@ -138,21 +141,24 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.setAngle(0).setScale(this.kind === 'boss' ? 1 : 1.15);
   }
 
-  receiveHit(damage: number, direction: 1 | -1 = 1): boolean {
+  receiveHit(damage: number, direction: 1 | -1 = 1, finisher = false): boolean {
     if (this.hitLockMs > 0 || damage <= 0) return false;
     this.hitLockMs = 90;
     this.hp = Math.max(0, this.hp - damage);
     this.healthBarMs = 1100;
-    this.setTint(0xffd2d2);
-    this.scene.time.delayedCall(70, () => this.active && this.clearTint());
+    this.setTint(0xffefd6).setTintMode(Phaser.TintModes.FILL);
+    this.scene.time.delayedCall(70, () => this.active && this.clearTint().setTintMode(Phaser.TintModes.MULTIPLY));
     if (!this.defeated) {
       const body = this.body as Phaser.Physics.Arcade.Body;
       if (this.kind === 'boss' && this.attackCycle.state.phase !== 'idle') body.setVelocityX(direction * 55);
       else {
         this.attackCycle.cancel();
-        this.staggerMs = this.kind === 'boss' ? 80 : 145;
+        this.staggerDuration = this.kind === 'boss' ? 80 : finisher ? 260 : 180;
+        this.staggerMs = this.staggerDuration;
         this.state = 'stagger';
-        body.setVelocityX(direction * (this.kind === 'boss' ? 105 : 170));
+        this.recoilVelocity = direction * (this.kind === 'boss' ? 60 : finisher ? 180 : 55);
+        body.setVelocityX(this.recoilVelocity);
+        this.renderPose();
       }
     }
     return true;
@@ -162,7 +168,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   receiveKick(direction: 1 | -1): boolean {
     if (!this.active || this.kind === 'boss') return false;
     this.attackCycle.cancel();
-    this.staggerMs = 230;
+    this.staggerMs = this.staggerDuration = 230;
+    this.recoilVelocity = direction * 235;
     this.state = 'stagger';
     this.healthBarMs = 700;
     (this.body as Phaser.Physics.Arcade.Body).setVelocityX(direction * 235);
@@ -192,7 +199,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (phase === 'idle' && moving) { this.play(`${this.kind}-walk`, true); return; }
     this.anims.stop();
     if (phase === 'idle') { this.setFrame(this.kind === 'spitter' ? 8 : this.kind === 'hound' ? 12 : 0); return; }
-    if (phase === 'stagger') { this.setFrame(this.kind === 'boss' ? 3 : this.kind === 'spitter' ? 11 : this.kind === 'hound' ? 15 : 7); return; }
+    if (phase === 'stagger') {
+      const frame = Math.min(3, Math.floor((1 - this.staggerMs / this.staggerDuration) * 4));
+      this.setFrame(this.kind === 'boss' ? 3 : (this.kind === 'spitter' ? 20 : this.kind === 'hound' ? 24 : 16) + frame); return;
+    }
     const offset = phase === 'windup' ? 0 : phase === 'active' ? (progress < .5 ? 1 : 2) : 3;
     if (this.kind === 'walker') this.setFrame(phase === 'windup' ? 4 : phase === 'active' ? 5 : progress < .45 ? 6 : 7);
     else if (this.kind === 'spitter') this.setFrame(phase === 'windup' ? 9 : phase === 'active' ? 10 : 11);

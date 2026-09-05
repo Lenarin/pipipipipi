@@ -54,3 +54,17 @@ Created with the built-in imagegen tool, using the existing photo-derived hero a
 Standard deterministic import: chroma key, connected-component slicing, nearest-neighbor resizing, foot/root registration, one-pixel rim, frame packing. This does not generate or redraw limbs. The boss source's left-facing idle/slam frames are flipped during import, while its right-facing cast frames are retained. Isolated background motes are omitted; normal game particles handle impacts and projectiles.
 
 Hero atlas: 1536×720, 40 frames of 192×144, feet at (96,128). Hero scale and origin preserve the old 20.625×41.25-world-pixel Arcade body. Enemy/boss atlases use 128×128 frames, feet at (64,112). Source-pixel hand/tip/boot contacts and per-pose anchors live in `src/game/spriteFrames.ts`. No per-frame normalization that would enlarge a crouching head. Runtime requires no AI service.
+
+## Version 0.5 weighted pipe combat (2026-09-06)
+
+Built-in imagegen, using the v0.4 photo-derived hero and enemy sheets as identity/style references. Exact final prompts and inputs: [SPRITE-PROMPTS-0.5.json](docs/SPRITE-PROMPTS-0.5.json). Original files remain unchanged; no external generation or network is used at runtime.
+
+| Saved source | Frames | Role |
+| --- | ---: | --- |
+| `public/assets/hero-combat-v5-source.png` | 24 | 8 complete-body poses for each of 3 forward pipe strikes; 1024×1536 source |
+| `public/assets/enemy-recoil-v5-source.png` | 12 | Four hurt/rebalance poses each for walker, spitter and hound; 1254×1254 source |
+| `public/assets/audio/pipe-{swing,hit,heavy,kill}-{1,2,3}-v5.wav` | 12 WAVs | Original deterministic 22050 Hz PCM; distinct air, contact/body/metal, heavy and kill voices |
+
+Hero atlas: 1536×1152, 64 frames; new pipe frames40–63, existing action/kick indexes unchanged. Enemy atlas: 896×512, 28 frames; recoil16–27. Boss atlas unchanged. 104 frames packed, of which 12 old hero pipe poses are retained but unused. Registration is measured from the generated source pixels, including pipe hand/tip contacts; fixed body size and foot registration remain intact. Import is deterministic key/trim/pack only. Native Phaser Graphics adds a short translucent pipe trail and local impact star; no code-drawn body parts.
+
+Audio regeneration: `node scripts/generate-audio.mjs`; optional first argument selects an output directory. Original seven WAVs are byte-preserved by the extended generator. New effects combine filtered air/noise, brief low body transients and decaying inharmonic metal tones; three variants rotate without immediate repetition. Playback/mixing/mute remain Phaser-owned.

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { addPixelOutline, keyBackground } from './spriteImport';
-import { BOSS_POSES, ENEMY_POSES, HERO_ACTION_POSES, HERO_COMBAT_POSES, HERO_LAYOUT, HERO_LOCOMOTION_POSES, type SpritePose } from './spriteFrames';
+import { BOSS_POSES, ENEMY_POSES, ENEMY_RECOIL_POSES, HERO_PIPE_POSES, HERO_ACTION_POSES, HERO_COMBAT_POSES, HERO_LAYOUT, HERO_LOCOMOTION_POSES, type SpritePose } from './spriteFrames';
 
 /** Connected-component slicing avoids cutting off weapons that cross the source's nominal grid. */
 export function findSpriteComponents(pixels: Uint8ClampedArray, width: number, height: number, count: number) {
@@ -69,11 +69,12 @@ function register(scene: Phaser.Scene, key: string, canvas: HTMLCanvasElement, f
 
 export function importAnimationSheets(scene: Phaser.Scene) {
   const { width, height, anchorX, anchorY } = HERO_LAYOUT;
-  const hero = document.createElement('canvas'); hero.width = width * 8; hero.height = height * 5;
+  const hero = document.createElement('canvas'); hero.width = width * 8; hero.height = height * 8;
   const out = hero.getContext('2d')!; out.imageSmoothingEnabled = false;
   pack(scene, 'hero-locomotion-source', HERO_LOCOMOTION_POSES, out, 0, width, height, anchorX, anchorY);
   pack(scene, 'hero-combat-source', HERO_COMBAT_POSES, out, 8, width, height, anchorX, anchorY);
   pack(scene, 'hero-actions-source', HERO_ACTION_POSES, out, 24, width, height, anchorX, anchorY);
+  pack(scene, 'hero-pipe-source', HERO_PIPE_POSES, out, 40, width, height, anchorX, anchorY);
   register(scene, 'hero-full', hero, width, height);
   const animation = (key: string, texture: string, frames: number[], fps: number, repeat = -1) => {
     if (scene.anims.exists(key)) scene.anims.remove(key);
@@ -82,9 +83,10 @@ export function importAnimationSheets(scene: Phaser.Scene) {
   animation('hero-idle', 'hero-full', [0, 1], 2.5);
   animation('hero-run', 'hero-full', [2, 3, 4, 5, 6, 7], 12);
   animation('hero-death', 'hero-full', [32, 33, 34, 35], 8, 0);
-  const enemies = document.createElement('canvas'); enemies.width = 128 * 16; enemies.height = 128;
+  const enemies = document.createElement('canvas'); enemies.width = 128 * 7; enemies.height = 128 * 4;
   const enemyOut = enemies.getContext('2d')!; enemyOut.imageSmoothingEnabled = false;
   pack(scene, 'enemy-animation-source', ENEMY_POSES, enemyOut, 0, 128, 128, 64, 112);
+  pack(scene, 'enemy-recoil-source', ENEMY_RECOIL_POSES, enemyOut, 16, 128, 128, 64, 112);
   register(scene, 'enemy-full', enemies, 128, 128);
   animation('walker-walk', 'enemy-full', [0, 1, 2, 3], 8);
   animation('spitter-walk', 'enemy-full', [8, 11], 4);

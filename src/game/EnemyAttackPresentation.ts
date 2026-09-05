@@ -13,7 +13,7 @@ export class EnemyAttackPresentation {
 
   constructor(private readonly scene: Phaser.Scene) {
     this.footprint = scene.add.graphics().setDepth(2);
-    this.cue = scene.add.graphics().setDepth(6);
+    this.cue = scene.add.graphics().setDepth(15);
   }
 
   update(enemy: Enemy): void {

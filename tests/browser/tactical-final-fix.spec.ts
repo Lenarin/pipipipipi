@@ -73,10 +73,10 @@ test('stage transition clears a live kick and queued player movement actions', a
     const scene = (window as any).__GAME__.scene.getScene('Game');
     scene.enemies.getChildren().forEach((enemy: any) => enemy.destroy());
     scene.player.body.reset(scene.level.exitX, 285);
-    scene.dashBufferMs = 120;
   });
   await page.keyboard.press('KeyF', { delay: 20 });
   await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').kick.active)).toBe(true);
+  await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').dashBufferMs = 120);
   await page.keyboard.press('KeyE', { delay: 25 });
 
   expect(await page.evaluate(() => {

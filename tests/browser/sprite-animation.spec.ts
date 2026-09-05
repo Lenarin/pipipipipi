@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { HERO_COMBAT_POSES, HERO_LAYOUT, posePoint } from '../../src/game/spriteFrames';
+import { HERO_PIPE_POSES, HERO_LAYOUT, posePoint } from '../../src/game/spriteFrames';
 
 async function start(page: Page) {
   await page.goto('/');
@@ -7,16 +7,16 @@ async function start(page: Page) {
   await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').player.grounded)).toBe(true);
 }
 
-test('all 68 packed frames contain artwork, no magenta, and contact markers land on visible pixels', async ({ page }) => {
+test('all 104 packed frames contain artwork, no magenta, and contact markers land on visible pixels', async ({ page }) => {
   await start(page);
-  const markers = HERO_COMBAT_POSES.flatMap((pose, i) => pose.contact ? [0, 2].map(j => {
+  const markers = HERO_PIPE_POSES.flatMap((pose, i) => pose.contact ? [0, 2].map(j => {
     const p = posePoint(pose, pose.contact![j], pose.contact![j + 1]);
-    return { frame: i + 8, x: HERO_LAYOUT.anchorX + p.x, y: HERO_LAYOUT.anchorY + p.y };
+    return { frame: i + 40, x: HERO_LAYOUT.anchorX + p.x, y: HERO_LAYOUT.anchorY + p.y };
   }) : []);
   const result = await page.evaluate(markers => {
     const s = (window as any).__GAME__.scene.getScene('Game');
     const counts = [], empty = [], pink = [];
-    for (const [key, count] of [['hero-full', 40], ['enemy-full', 16], ['boss-full', 12]] as const) {
+    for (const [key, count] of [['hero-full', 64], ['enemy-full', 28], ['boss-full', 12]] as const) {
       const source = s.textures.get(key).getSourceImage();
       const c = source.getContext('2d');
       counts.push(s.textures.get(key).frameTotal - 1);
@@ -39,7 +39,7 @@ test('all 68 packed frames contain artwork, no magenta, and contact markers land
     });
     return { counts, empty, pink, misses };
   }, markers);
-  expect(result).toEqual({ counts: [40, 16, 12], empty: [], pink: [], misses: [] });
+  expect(result).toEqual({ counts: [64, 28, 12], empty: [], pink: [], misses: [] });
 });
 
 test('three full-body strikes hit forward only, in both facings, for 16 / 16 / 32 damage', async ({ page }) => {
@@ -55,7 +55,6 @@ test('three full-body strikes hit forward only, in both facings, for 16 / 16 / 3
     for (const facing of [1, -1]) {
       s.attack.cancel(); s.attack.request(facing);
       for (let step = 1; step <= 3; step++) {
-        if (step < 3) s.attack.request(facing);
         const p = s.attack.currentProfile;
         s.attack.advance(p.windupMs);
         s.activeSwing = s.rules.beginSwing();
@@ -71,7 +70,9 @@ test('three full-body strikes hit forward only, in both facings, for 16 / 16 / 3
         s.resolveActiveAttack(); s.resolveActiveAttack();
         hits.push({ step, facing, frame: s.player.frame.name, damage: before - enemy.hp, behindDamage: before - behind });
         s.cancelHitStop();
-        s.attack.advance(p.activeMs + p.recoveryMs);
+        s.attack.advance(p.activeMs + p.recoveryMs - 100);
+        if (step < 3) s.attack.request(facing);
+        s.attack.advance(100);
       }
     }
     s.player.body.updateFromGameObject();
@@ -79,7 +80,7 @@ test('three full-body strikes hit forward only, in both facings, for 16 / 16 / 3
   });
   expect(result.hits.map(h => h.damage)).toEqual([16, 16, 32, 16, 16, 32]);
   expect(result.hits.map(h => h.behindDamage)).toEqual([0, 0, 0, 0, 0, 0]);
-  expect(result.hits.map(h => h.frame)).toEqual([9, 13, 17, 9, 13, 17]);
+  expect(result.hits.map(h => h.frame)).toEqual([43, 51, 59, 43, 51, 59]);
   expect(result.bodyAfter).toEqual(result.bodyBefore);
   expect(result.bodyAfter.w).toBeCloseTo(20.625);
   expect(result.bodyAfter.h).toBeCloseTo(41.25);

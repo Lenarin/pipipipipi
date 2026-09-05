@@ -146,7 +146,8 @@ test('all three stage gates, boss combat, victory and replay work together', asy
       for (let swing = 0; swing < 30 && alive; swing++) {
         alive = await page.evaluate((id: string) => { const s = (window as any).__GAME__.scene.getScene('Game'); const e = s.enemies.getChildren().find((e: any) => e.id === id); if (!e) return false; s.player.body.reset(e.x - 40, Math.min(e.y - 8, 280)); s.player.facing = 1; return true; }, id);
         if (!alive) break;
-        await page.keyboard.press('KeyJ', { delay: 40 }); await page.waitForTimeout(240);
+        await page.keyboard.press('KeyJ', { delay: 40 });
+        await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').attack.state.phase), { intervals: [20] }).toBe('idle');
       }
       expect(alive, `${id} should be defeated by melee`).toBe(false);
     }

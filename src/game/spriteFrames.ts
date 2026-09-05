@@ -25,6 +25,29 @@ export const HERO_LOCOMOTION_POSES: readonly SpritePose[] = [
   [261,411], [669,411], [1090,411], [1483,411],
   [247,800], [666,800], [1091,800], [1492,800],
 ].map(([anchorX, feetY]) => ({ anchorX, feetY, scale: 72 / 330 }));
+
+// v0.5: eight full-body poses per forward stroke, source 1024x1536.
+const pipePose = (anchorX: number, feetY: number, contact?: SpritePose['contact']): SpritePose => ({ anchorX, feetY, scale: 72 / 198, contact });
+export const HERO_PIPE_POSES: readonly SpritePose[] = [
+  pipePose(124,269), pipePose(368,269), pipePose(604,269), pipePose(811,269,[905,155,988,150]),
+  pipePose(98,528,[149,452,215,508]), pipePose(322,528), pipePose(604,528), pipePose(847,528),
+  pipePose(124,787), pipePose(369,787), pipePose(604,787), pipePose(811,787,[905,677,988,669]),
+  pipePose(98,1046,[149,971,215,1025]), pipePose(325,1046), pipePose(605,1046), pipePose(847,1046),
+  pipePose(124,1301), pipePose(347,1301), pipePose(580,1301), pipePose(789,1301,[864,1234,941,1276]),
+  pipePose(96,1533,[209,1465,294,1478]), pipePose(375,1533), pipePose(604,1533), pipePose(848,1533),
+];
+export const ENEMY_RECOIL_POSES: readonly SpritePose[] = [
+  [203,411], [510,413], [773,411], [1088,411],
+  [204,831], [516,835], [774,835], [1080,832],
+  [173,1164], [466,1161], [781,1161], [1093,1161],
+].map(([anchorX, feetY], i) => ({ anchorX, feetY, scale: i < 4 ? 36 / 330 : i < 8 ? 34 / 345 : 24 / 160 }));
+
+export function pipeFrame(step: number, phase: AttackPhase, progress: number): number {
+  const p = Math.max(0, Math.min(1, progress));
+  const offset = phase === 'windup' ? (p < .25 ? 0 : p < .6 ? 1 : 2)
+    : phase === 'active' ? (p < .5 ? 3 : 4) : p < .35 ? 5 : p < .75 ? 6 : 7;
+  return Math.max(0, Math.min(2, step - 1)) * 8 + offset;
+}
 export const HERO_ACTION_POSES: readonly SpritePose[] = [
   [155,246], [466,246], [754,246], [1060,246],
   [148,595], [439,595], [757,595], [1063,595],

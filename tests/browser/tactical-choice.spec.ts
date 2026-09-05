@@ -46,7 +46,7 @@ test('a ready dash cancels a live pipe strike, including its hitstop', async ({ 
   await start(page);
   await page.evaluate(() => {
     const s = (window as any).__GAME__.scene.getScene('Game');
-    s.attack.request(1); s.attack.advance(65); s.beginHitStop(350);
+    s.attack.request(1); s.attack.advance(s.attack.currentProfile.windupMs); s.beginHitStop(350);
   });
   await page.keyboard.press('ShiftLeft', { delay: 30 });
   expect(await page.evaluate(() => {
@@ -59,7 +59,7 @@ test('F can cancel a pipe strike and consumes one kick cooldown', async ({ page 
   await start(page);
   await page.evaluate(() => {
     const s = (window as any).__GAME__.scene.getScene('Game');
-    s.attack.request(1); s.attack.advance(65);
+    s.attack.request(1); s.attack.advance(s.attack.currentProfile.windupMs);
   });
   await page.keyboard.press('KeyF', { delay: 20 });
   expect(await page.evaluate(() => {

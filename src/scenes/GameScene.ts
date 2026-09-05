@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { bridge, type GameCommand, type GameSnapshot } from '../game/bridge';
 import { decorateLevel, drawPlatform } from '../game/art';
+import { CombatAudio } from '../game/CombatAudio';
 import { CombatEffects } from '../game/CombatEffects';
 import { EnemyAttackPresentation } from '../game/EnemyAttackPresentation';
 import { KickAction } from '../gameplay/ActionState';
@@ -26,12 +27,18 @@ export class GameScene extends Phaser.Scene {
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private keys!: Record<'left' | 'right' | 'jump' | 'jumpAlt' | 'attack' | 'dash' | 'dashAlt' | 'heal' | 'ability' | 'interact' | 'pause', Phaser.Input.Keyboard.Key>;
   private snapshotMs = 0;
+  private readonly pressedActions = new Set<string>();
+  private readonly pressHandler = (event: KeyboardEvent) => {
+    if (!event.repeat && this.rules.mode === 'playing' && !this.rules.cacheChoiceOpen) this.pressedActions.add(event.code);
+  };
   private readonly attack = new AttackChain();
   private readonly kick = new KickAction(160);
   private activeSwing: number | null = null;
   private combatEffects!: CombatEffects;
+  private combatAudio!: CombatAudio;
   private readonly enemyPresentations = new Map<string, EnemyAttackPresentation>();
   private hitStopActive = false;
+  private stoppedSwing: number | null = null;
   private hitStopTimer?: Phaser.Time.TimerEvent;
   private bossActivated = false;
   private dashBufferMs = 0;
@@ -63,6 +70,7 @@ export class GameScene extends Phaser.Scene {
     this.buildStage(0);
     this.physics.pause();
     bridge.on('command', this.commandHandler);
+    this.input.keyboard!.on('keydown', this.pressHandler);
     this.input.keyboard!.on('keydown-ESC', this.escapeHandler);
     this.input.keyboard!.on('keydown-M', this.muteHandler);
     this.input.on('pointerdown', this.pointerHandler);
@@ -76,11 +84,11 @@ export class GameScene extends Phaser.Scene {
   update(_time: number, rawDelta: number): void {
     if (this.rules.mode !== 'playing' || this.rules.cacheChoiceOpen) return;
     const movementFacing = this.movementIntent();
-    const attackPressed = Phaser.Input.Keyboard.JustDown(this.keys.attack);
-    const jumpPressedNow = Phaser.Input.Keyboard.JustDown(this.cursors.up) || Phaser.Input.Keyboard.JustDown(this.keys.jump) || Phaser.Input.Keyboard.JustDown(this.keys.jumpAlt);
-    const dashPressedNow = Phaser.Input.Keyboard.JustDown(this.keys.dash) || Phaser.Input.Keyboard.JustDown(this.keys.dashAlt);
-    const healPressed = Phaser.Input.Keyboard.JustDown(this.keys.heal);
-    const abilityPressed = Phaser.Input.Keyboard.JustDown(this.keys.ability);
+    const attackPressed = this.consumePress('KeyJ');
+    const jumpPressedNow = this.consumePress('ArrowUp', 'Space', 'KeyW');
+    const dashPressedNow = this.consumePress('ShiftLeft', 'ShiftRight', 'KeyK');
+    const healPressed = this.consumePress('KeyQ');
+    const abilityPressed = this.consumePress('KeyF');
     const movementHeld = Boolean(movementFacing);
     if (healPressed) this.tryHeal();
     if (movementHeld || attackPressed || dashPressedNow || jumpPressedNow || abilityPressed) this.cancelHealing();
@@ -111,10 +119,11 @@ export class GameScene extends Phaser.Scene {
       jumpHeld: this.cursors.up.isDown || this.keys.jump.isDown || this.keys.jumpAlt.isDown,
       dashPressed: dashReady,
     }, delta, true, { ...this.attack.state, lunge: this.attack.currentProfile?.lunge ?? 0, progress: this.attack.phaseProgress });
+    this.limitAttackAdvance(delta);
     if (step.jumped) this.playSound('jump');
     if (step.dashed) { this.rules.grantImmunity(190); this.combatEffects.dashBurst(this.player.x, this.player.y, this.player.facing); this.playSound('dash'); }
     if (step.dashEnded) this.combatEffects.dashBurst(this.player.x, this.player.y, this.player.facing, true);
-    this.combatEffects.update(this.player, this.attack.state, this.attack.phaseProgress, this.attack.currentProfile);
+    this.combatEffects.update(this.player, this.attack.state, this.attack.phaseProgress, this.attack.currentProfile, delta);
     this.resolveAttackEvents(attackEvents);
     this.resolveActiveAttack();
     this.combatEffects.updateKick(this.player, this.kick);
@@ -122,7 +131,7 @@ export class GameScene extends Phaser.Scene {
     this.kick.advance(delta);
     this.combatEffects.updateHealing(this.player, this.rules.healing, this.rules.healingProgress);
     if (this.rules.advanceHealing(delta)) this.completeHeal();
-    if (Phaser.Input.Keyboard.JustDown(this.keys.interact)) this.interact();
+    if (this.consumePress('KeyE')) this.interact();
     if (this.rules.stage === 2 && this.player.x > 1400) this.bossActivated = true;
     const bossAllowed = this.bossActivated;
     let occupiedAttackSlots = this.enemies.getChildren().filter((child) => (child as Enemy).isAttacking).length;
@@ -175,6 +184,7 @@ export class GameScene extends Phaser.Scene {
     this.level.platforms.forEach((platform) => this.addPlatform(platform.x, platform.y, platform.width, platform.height ?? 18, true));
     this.player = new Player(this, 110, 265);
     this.combatEffects = new CombatEffects(this);
+    this.combatAudio = new CombatAudio(this);
     this.player.play('hero-idle');
     if (this.rules.mode === 'title') {
       this.player.setPosition(485, 267).setScale(95 / 80);
@@ -210,6 +220,27 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  private consumePress(...codes: string[]): boolean {
+    let pressed = false;
+    for (const code of codes) if (this.pressedActions.delete(code)) pressed = true;
+    return pressed;
+  }
+
+  /** Restrict only the attack's forward step, not walking or a dodge through enemies. */
+  private limitAttackAdvance(delta: number): void {
+    if (this.attack.state.phase === 'idle' || this.player.isDashing) return;
+    const body = this.player.body as Phaser.Physics.Arcade.Body, facing = this.attack.state.facing;
+    if (body.velocity.x * facing <= 0) return;
+    for (const child of this.enemies.getChildren()) {
+      const enemy = child as Enemy, target = enemy.body as Phaser.Physics.Arcade.Body;
+      const gap = (enemy.x - this.player.x) * facing;
+      if (!enemy.active || enemy.defeated || gap <= 0 || body.bottom < target.top || body.top > target.bottom) continue;
+      const spacing = (body.width + target.width) / 2 + 4;
+      const speed = Math.max(0, gap - spacing) / (Math.max(delta, 1000 / this.physics.world.fps) / 1000);
+      if (speed < body.velocity.x * facing) body.setVelocityX(facing * speed);
+    }
+  }
+
   private addPlatform(x: number, y: number, width: number, height: number, oneWay = false): void {
     drawPlatform(this, x, y, width, height);
     const body = this.physics.add.staticImage(x, y, 'platform').setDisplaySize(width, height).setVisible(false);
@@ -228,12 +259,13 @@ export class GameScene extends Phaser.Scene {
   private cancelAttack(): void {
     this.attack.cancel();
     this.activeSwing = null;
+    this.stoppedSwing = null;
     this.combatEffects?.clear();
   }
 
   private resolveAttackEvents(events: ReturnType<AttackChain['advance']>): void {
     for (const event of events) {
-      if (event.type === 'active') { this.activeSwing = this.rules.beginSwing(); this.playSound('slash'); }
+      if (event.type === 'active') { this.activeSwing = this.rules.beginSwing(); this.combatAudio.swing(event.step); }
       else if (event.type === 'idle') this.activeSwing = null;
     }
   }
@@ -252,19 +284,26 @@ export class GameScene extends Phaser.Scene {
       const padding = this.combatEffects.strikeThickness / 2;
       const targetBounds = new Phaser.Geom.Rectangle(body.x - padding, body.y - padding, body.width + padding * 2, body.height + padding * 2);
       if (strikes.every((strike) => !Phaser.Geom.Intersects.LineToRectangle(strike, targetBounds))) continue;
-      if (this.rules.hitTarget(this.activeSwing, enemy.id) && enemy.receiveHit(damage, facing)) {
-        this.combatEffects.confirmHit(enemy.x, enemy.y, damage, this.attack.state.step === 3, facing, this.shakeEnabled);
-        this.beginHitStop(this.attack.state.step === 3 ? 65 : 45);
+      if (this.rules.hitTarget(this.activeSwing, enemy.id) && enemy.receiveHit(damage, facing, this.attack.state.step === 3)) {
+        const strike = strikes.find(line => Phaser.Geom.Intersects.LineToRectangle(line, targetBounds))!;
+        const intersections = Phaser.Geom.Intersects.GetLineToRectangle(strike, targetBounds);
+        const point = intersections[0] ?? { x: (strike.x1 + strike.x2) / 2, y: (strike.y1 + strike.y2) / 2 };
+        const x = Phaser.Math.Clamp(point.x, body.x, body.right), y = Phaser.Math.Clamp(point.y, body.y, body.bottom);
+        this.combatEffects.confirmHit(x, y, damage, this.attack.state.step === 3, facing, this.shakeEnabled);
+        if (this.stoppedSwing !== this.activeSwing) {
+          this.stoppedSwing = this.activeSwing;
+          this.combatAudio.impact(this.attack.state.step);
+          this.beginHitStop([50, 55, 85][this.attack.state.step - 1]);
+        }
         this.damageEnemy(enemy, damage);
       }
     }
   }
 
   private damageEnemy(enemy: Enemy, damage: number): void {
-    this.playSound('hit');
     if (!enemy.defeated) return;
     this.rules.recordKill(enemy.kind === 'boss' ? 20 : 3);
-    this.playSound('kill');
+    this.combatAudio.kill();
     const burst = this.add.particles(enemy.x, enemy.y, 'particle', { speed: { min: 40, max: 130 }, lifespan: 340, quantity: 10, tint: [0xffd4aa, 0x9ac8c1], emitting: false });
     burst.explode();
     this.time.delayedCall(400, () => burst.destroy());
@@ -492,7 +531,7 @@ export class GameScene extends Phaser.Scene {
   private pauseForFocusLoss(): void {
     if (this.rules.mode === 'playing') this.handleCommand('pause');
   }
-  private clearInput(): void { this.input.keyboard?.resetKeys(); this.clearActionBuffers(); }
+  private clearInput(): void { this.input.keyboard?.resetKeys(); this.pressedActions.clear(); this.clearActionBuffers(); }
   private clearActionBuffers(): void { this.dashBufferMs = 0; this.jumpBufferMs = 0; }
   private cancelPlayerActions(): void { this.cancelAttack(); this.rules.cancelHealing(); this.kick.cancel(); this.clearActionBuffers(); this.player?.cancelActions(); }
   private cancelEnemyActions(): void {
@@ -552,6 +591,7 @@ export class GameScene extends Phaser.Scene {
     this.enemyPresentations.forEach((presentation) => presentation.destroy());
     this.enemyPresentations.clear();
     bridge.off('command', this.commandHandler);
+    this.input.keyboard?.off('keydown', this.pressHandler);
     this.input.keyboard?.off('keydown-ESC', this.escapeHandler);
     this.input.keyboard?.off('keydown-M', this.muteHandler);
     this.input.off('pointerdown', this.pointerHandler);

@@ -22,7 +22,7 @@ test('a lethal active hit at the gate can transition in the same frame without f
     target.hp = scene.rules.damage;
 
     scene.queueAttack();
-    scene.resolveAttackEvents(scene.attack.advance(65));
+    scene.resolveAttackEvents(scene.attack.advance(scene.attack.currentProfile.windupMs));
     scene.combatEffects.update(scene.player, scene.attack.state, scene.attack.phaseProgress);
     scene.resolveActiveAttack();
     const lethalHitStartedHitStop = !target.active && scene.hitStopActive;

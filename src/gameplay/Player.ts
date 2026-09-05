@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { attackFrame, HERO_LAYOUT } from '../game/spriteFrames';
+import { attackVelocity } from './Combat';
+import { pipeFrame, HERO_LAYOUT } from '../game/spriteFrames';
 
 export interface PlayerInput { left: boolean; right: boolean; jumpPressed: boolean; jumpHeld?: boolean; dashPressed: boolean; }
 export interface PlayerStep { dashed: boolean; dashEnded: boolean; jumped: boolean; }
@@ -86,13 +87,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     } else {
       if (combat.phase !== 'idle') this.facing = combat.facing;
       else if (direction !== 0) this.facing = direction > 0 ? 1 : -1;
-      if (combat.phase === 'active') {
-        const opposing = direction !== 0 && direction !== combat.facing;
-        body.setVelocityX(opposing ? direction * 125 : combat.facing * combat.lunge * 5);
-      } else {
-      const movementScale = combat.phase === 'windup' || combat.phase === 'recovery' ? 0.38 : 1;
-      body.setVelocityX(direction * 185 * movementScale);
-      }
+      body.setVelocityX(combat.phase === 'idle' ? direction * 185
+        : attackVelocity(combat.lunge * 5, combat.phase, combat.progress, combat.facing, direction));
     }
 
     this.setFlipX(this.facing < 0);
@@ -108,9 +104,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   get isDashing(): boolean { return this.dashMs > 0; }
   get grounded(): boolean { const body = this.body as Phaser.Physics.Arcade.Body; return body.blocked.down || body.touching.down; }
-  beginAttack(): void { this.attackPhase = 'windup'; this.showCombatPose(0); }
+  beginAttack(): void { this.attackPhase = 'windup'; this.showPipePose(0); }
   get dashProgress(): number { return 1 - this.dashMs / 150; }
   get isHurt(): boolean { return this.hurtMs > 0; }
+  showPipePose(frame: number): void { this.anims.stop(); this.setFrame(40 + frame); }
   showCombatPose(frame: number): void { this.anims.stop(); this.setFrame(8 + frame); }
   showActionPose(frame: number): void { this.anims.stop(); this.setFrame(24 + frame); }
   showHurt(): void { this.hurtMs = 170; this.showActionPose(8); }
@@ -130,7 +127,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private updateAnimation(grounded: boolean, velocityX: number, velocityY: number, combat: PlayerCombatState): void {
     if (this.isDashing) this.showActionPose(Math.min(3, Math.floor(this.dashProgress * 4)));
     else if (this.hurtMs > 0) this.showActionPose(this.hurtMs > 85 ? 8 : 9);
-    else if (this.attackPhase !== 'idle') this.showCombatPose(attackFrame(combat.step ?? 1, combat.phase, combat.progress));
+    else if (this.attackPhase !== 'idle') this.showPipePose(pipeFrame(combat.step ?? 1, combat.phase, combat.progress));
     else if (!grounded) this.showActionPose(velocityY < -270 ? 12 : velocityY < 20 ? 13 : 14);
     else if (this.landingMs > 0 && Math.abs(velocityX) < 20) this.showActionPose(15);
     else if (Math.abs(velocityX) > 20) this.play('hero-run', true);
