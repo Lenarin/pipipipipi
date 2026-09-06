@@ -3,9 +3,10 @@ test('loads the local Phaser game and starts with healthy hero', async ({ page }
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/');
-  await expect(page.getByRole('button', { name: /ВОЙТИ В ГОРОД/ })).toBeEnabled({ timeout: 30000 });
+  await expect(page.getByRole('button', { name: /Начать/ })).toBeEnabled({ timeout: 30000 });
   await expect(page.locator('canvas')).toBeVisible();
-  await page.getByRole('button', { name: /ВОЙТИ В ГОРОД/ }).click();
+  await page.getByRole('button', { name: /Начать/ }).click();
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
   await expect(page.locator('#hud')).toBeVisible();
   await expect(page.locator('#health-label')).toHaveText('100 / 100');
   await page.keyboard.press('Escape');
@@ -17,7 +18,8 @@ test('loads the local Phaser game and starts with healthy hero', async ({ page }
 
 async function start(page: import('@playwright/test').Page) {
   await page.goto('/');
-  await page.getByRole('button', { name: /ВОЙТИ В ГОРОД/ }).click();
+  await page.getByRole('button', { name: /Начать/ }).click();
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
   await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').player.grounded)).toBe(true);
 }
 async function playerState(page: import('@playwright/test').Page) {
@@ -82,7 +84,7 @@ test('upper courtyard platform and its health cache are reachable by jumping', a
 test('small viewport has no horizontal overflow and settings stay operable', async ({ page }) => {
   await page.setViewportSize({ width: 680, height: 500 });
   await page.goto('/');
-  await expect(page.getByRole('button', { name: /ВОЙТИ В ГОРОД/ })).toBeEnabled();
+  await expect(page.getByRole('button', { name: /Начать/ })).toBeEnabled();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.locator('#sound-button').click();
   await expect(page.locator('#sound-button')).toHaveAttribute('aria-pressed', 'true');
@@ -91,7 +93,7 @@ test('small viewport has no horizontal overflow and settings stay operable', asy
 
 test('balcony leads to the rooftop encounter without losing the street from view', async ({ page }) => {
   await start(page);
-  await expect(page.locator('#chapter-label')).toHaveText('01 / ДВОР БЕЗ ГАРАНТИЙ');
+  await expect(page.locator('#chapter-label')).toHaveText('01 / ПОСЛЕДНИЙ С СЫРОМ');
   // Start on the established balcony; reach the higher roof using only real jump input.
   await page.evaluate(() => {
     const s = (window as any).__GAME__.scene.getScene('Game');
@@ -128,14 +130,15 @@ test('melee kills a real enemy, healing updates UI, and enemy damage leads to cl
   await page.keyboard.press('KeyQ', { delay: 40 });
   await expect(page.locator('#health-label')).toHaveText('75 / 100', { timeout: 1600 });
   await page.evaluate(() => { const s = (window as any).__GAME__.scene.getScene('Game'); const e = s.enemies.getChildren()[0]; s.rules.hp = 1; s.player.body.reset(e.x - 35, Math.min(e.y - 8, 280)); });
-  await expect(page.getByRole('heading', { name: 'Не в эту ночь.' })).toBeVisible({ timeout: 8000 });
-  await page.getByRole('button', { name: /ЕЩЁ ОДНА НОЧЬ/ }).click();
+  await expect(page.getByRole('heading', { name: 'Доставка задерживается' })).toBeVisible({ timeout: 8000 });
+  await page.getByRole('button', { name: /НОВАЯ ДОСТАВКА/ }).click();
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
   await expect(page.locator('#health-label')).toHaveText('100 / 100');
   expect(await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').rules.kills)).toBe(0);
 });
 
 test('all three stage gates, boss combat, victory and replay work together', async ({ page }) => {
-  test.setTimeout(90000);
+  test.setTimeout(180000);
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
   await start(page);
   // Controlled encounter fixtures isolate progression: ordinary attacks still deal every point of damage.
@@ -144,24 +147,34 @@ test('all three stage gates, boss combat, victory and replay work together', asy
     await page.evaluate(() => { const s = (window as any).__GAME__.scene.getScene('Game'); s.rules.grantImmunity(120000); s.player.body.reset(s.level.exitX, 285); });
     await page.keyboard.press('KeyE', { delay: 40 });
     expect(await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').rules.stage)).toBe(stage);
-    const ids = await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').enemies.getChildren().map((e: any) => e.id));
-    for (const id of ids) {
+    async function defeat(id: string) {
       let alive = true;
       for (let swing = 0; swing < 30 && alive; swing++) {
-        alive = await page.evaluate((id: string) => { const s = (window as any).__GAME__.scene.getScene('Game'); const e = s.enemies.getChildren().find((e: any) => e.id === id); if (!e) return false; s.player.body.reset(e.x - 40, Math.min(e.y - 8, 280)); s.player.facing = 1; return true; }, id);
+        alive = await page.evaluate((id: string) => { const s = (window as any).__GAME__.scene.getScene('Game'); const e = s.enemies.getChildren().find((e: any) => e.id === id); if (!e) return false; const facing = e.bossId === 'chief' ? e.attackFacing : 1; s.player.body.reset(e.x - facing * 40, Math.min(e.y - 8, 280)); s.player.facing = facing; return true; }, id);
         if (!alive) break;
         await page.keyboard.press('KeyJ', { delay: 40 });
         await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').attack.state.phase), { intervals: [20] }).toBe('idle');
       }
       expect(alive, `${id} should be defeated by melee`).toBe(false);
     }
+    const ids = await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').enemies.getChildren().filter((e: any) => e.kind !== 'boss').map((e: any) => e.id));
+    for (const id of ids) await defeat(id);
+    await page.evaluate(() => { const s = (window as any).__GAME__.scene.getScene('Game'); s.player.body.reset(s.level.bossIntroX, 280); });
+    await page.keyboard.press('KeyE', { delay: 40 });
+    await page.getByRole('button', { name: 'Пропустить сцену' }).click();
+    const bossId = await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').enemies.getChildren().find((e: any) => e.kind === 'boss').id);
+    await defeat(bossId);
+    const helpers = await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').enemies.getChildren().map((e: any) => e.id));
+    for (const id of helpers) await defeat(id);
     await page.evaluate(() => { const s = (window as any).__GAME__.scene.getScene('Game'); s.player.body.reset(s.level.exitX, 285); });
     await page.keyboard.press('KeyE', { delay: 40 });
+    await page.getByRole('button', { name: 'Пропустить сцену' }).click();
     if (stage < 2) await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').rules.stage)).toBe(stage + 1);
   }
-  await expect(page.getByRole('heading', { name: 'Утро наступило.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Заказ доставлен' })).toBeVisible();
   await page.screenshot({ path: '.artifacts/victory.png' });
-  await page.getByRole('button', { name: /ЕЩЁ ОДНА НОЧЬ/ }).click();
+  await page.getByRole('button', { name: /НОВАЯ ДОСТАВКА/ }).click();
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
   await expect(page.locator('#health-label')).toHaveText('100 / 100');
   expect(await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').rules.stage)).toBe(0);
   expect(errors).toEqual([]);

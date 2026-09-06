@@ -4,13 +4,14 @@ const muted = (page: import('@playwright/test').Page) => page.locator('#sound-bu
 
 test('M toggles sound from the title and from paused gameplay', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('button', { name: /ВОЙТИ В ГОРОД/ })).toBeEnabled();
+  await expect(page.getByRole('button', { name: /Начать/ })).toBeEnabled();
 
   const titleValue = await muted(page);
   await page.keyboard.press('KeyM', { delay: 40 });
   await expect.poll(() => muted(page)).not.toBe(titleValue);
 
-  await page.getByRole('button', { name: /ВОЙТИ В ГОРОД/ }).click();
+  await page.getByRole('button', { name: /Начать/ }).click();
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
   await page.keyboard.press('Escape', { delay: 40 });
   await expect(page.getByRole('heading', { name: 'Пауза' })).toBeVisible();
   const pausedValue = await muted(page);
@@ -29,5 +30,5 @@ test('a failed visual asset offers retry and recovers on reload', async ({ page 
   await expect(page.locator('#loading-status')).toHaveText(/hero-locomotion-source/);
   shouldFail = false;
   await page.getByRole('button', { name: /ПОВТОРИТЬ ЗАГРУЗКУ/ }).click();
-  await expect(page.getByRole('button', { name: /ВОЙТИ В ГОРОД/ })).toBeEnabled();
+  await expect(page.getByRole('button', { name: /Начать/ })).toBeEnabled();
 });

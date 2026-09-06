@@ -26,7 +26,8 @@ for (const fps of [30, 60, 120]) test(`real Phaser ${fps}Hz loop keeps combo dam
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
   page.on('console', m => { if(m.type()==='error') errors.push(m.text()); });
-  await page.goto('/'); await page.getByRole('button', { name: /ВОЙТИ В ГОРОД/ }).click();
+  await page.goto('/'); await page.getByRole('button', { name: /Начать/ }).click();
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
   await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').player.grounded)).toBe(true);
   await page.evaluate(() => {
     const s = (window as any).__GAME__.scene.getScene('Game'), e = s.enemies.getChildren()[0];

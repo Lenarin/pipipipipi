@@ -12,6 +12,8 @@ import { Enemy, type EnemyEvent } from '../gameplay/Enemy';
 import { Player } from '../gameplay/Player';
 import { RunRules } from '../gameplay/Rules';
 import { levels, type CacheData, type LevelData } from '../levels';
+import { Campaign } from '../story/Campaign';
+import type { StoryId, StorySession } from '../story/story';
 
 type CacheVisual = { id: string; data: CacheData; marker: Phaser.GameObjects.Rectangle | Phaser.GameObjects.Image; used: boolean };
 type ProjectileAttackToken = { consumed: boolean };
@@ -19,6 +21,7 @@ type ProjectileAttackToken = { consumed: boolean };
 /** The Phaser orchestration layer: input, Arcade collisions, effects, audio and bridge state. */
 export class GameScene extends Phaser.Scene {
   readonly rules = new RunRules();
+  readonly campaign = new Campaign();
   player!: Player;
   private platforms!: Phaser.Physics.Arcade.StaticGroup;
   private enemies!: Phaser.Physics.Arcade.Group;
@@ -52,10 +55,11 @@ export class GameScene extends Phaser.Scene {
   private shakeEnabled = true;
   private interactPrompt!: Phaser.GameObjects.Text;
   private ambience?: Phaser.Sound.BaseSound;
+  private ambienceVolume = 0.16;
+  private readonly dialogueCompleteHandler = (session: StorySession) => this.completeDialogue(session);
   private readonly commandHandler = (command: GameCommand) => this.handleCommand(command);
   private readonly focusHandler = () => this.pauseForFocusLoss();
   private readonly visibilityHandler = () => { if (document.hidden) this.pauseForFocusLoss(); };
-  private readonly escapeHandler = () => this.handleCommand(this.rules.cacheChoiceOpen ? 'cache-cancel' : this.rules.mode === 'paused' ? 'resume' : 'pause');
   private readonly muteHandler = () => bridge.emit('toggle-mute');
   private readonly pointerHandler = (pointer: Phaser.Input.Pointer) => {
     if (this.rules.mode === 'playing' && !this.rules.cacheChoiceOpen && pointer.leftButtonDown()) {
@@ -74,8 +78,8 @@ export class GameScene extends Phaser.Scene {
     this.buildStage(0);
     this.physics.pause();
     bridge.on('command', this.commandHandler);
+    bridge.on('dialogue-complete', this.dialogueCompleteHandler);
     this.input.keyboard!.on('keydown', this.pressHandler);
-    this.input.keyboard!.on('keydown-ESC', this.escapeHandler);
     this.input.keyboard!.on('keydown-M', this.muteHandler);
     this.input.on('pointerdown', this.pointerHandler);
     window.addEventListener('blur', this.focusHandler);
@@ -147,7 +151,7 @@ export class GameScene extends Phaser.Scene {
     this.combatEffects.updateHealing(this.player, this.rules.healing, this.rules.healingProgress);
     if (this.rules.advanceHealing(delta)) this.completeHeal();
     if (this.consumePress('KeyE')) this.interact();
-    if (this.rules.stage === 2 && this.player.x > 1400) this.bossActivated = true;
+    if (this.rules.mode !== 'playing' || this.rules.cacheChoiceOpen) return;
     const bossAllowed = this.bossActivated;
     let occupiedAttackSlots = this.enemies.getChildren().filter((child) => (child as Enemy).isAttacking).length;
     for (const child of this.enemies.getChildren()) {
@@ -218,7 +222,7 @@ export class GameScene extends Phaser.Scene {
       this.cameras.main.setDeadzone(120, 0);
     }
     for (const spawn of this.level.enemies) {
-      const enemy = new Enemy(this, spawn.id, spawn.kind, spawn.x, spawn.y ?? (spawn.kind === 'hound' ? 291 : spawn.kind === 'boss' ? 260 : 276));
+      const enemy = new Enemy(this, spawn.id, spawn.kind, spawn.x, spawn.y ?? (spawn.kind === 'hound' ? 291 : spawn.kind === 'boss' ? 260 : 276), { bossId: spawn.bossId, faction: spawn.faction ?? (['street', 'police', 'federal'] as const)[index] });
       if (this.rules.mode === 'title') enemy.setVisible(false);
       this.enemies.add(enemy);
       this.enemyPresentations.set(enemy.id, new EnemyAttackPresentation(this));
@@ -233,7 +237,7 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.enemies, this.platforms);
     this.physics.add.collider(this.projectiles, this.platforms, (object) => object.destroy());
     this.physics.add.overlap(this.player, this.projectiles, (_player, projectile) => this.hitFromProjectile(projectile as Phaser.Physics.Arcade.Image));
-    this.setMessage(this.rules.mode === 'title' ? 'Нажмите «Начать»' : index === 0 ? 'Двор: расчистите маршрут, пока район не передумал' : `${this.level.name}: проход временно согласован`);
+    this.setMessage(this.rules.mode === 'title' ? 'Нажмите «Начать»' : this.routeObjective());
     if (this.rules.mode === 'playing') {
       this.time.paused = false;
       this.tweens.resumeAll();
@@ -303,6 +307,7 @@ export class GameScene extends Phaser.Scene {
     const damage = Math.round(this.rules.damage * damageMultiplier);
     for (const child of [...this.enemies.getChildren()]) {
       const enemy = child as Enemy;
+      if (enemy.kind === 'boss' && !this.bossActivated) continue;
       const body = enemy.body as Phaser.Physics.Arcade.Body;
       const point = this.combatEffects.strikeContact(new Phaser.Geom.Rectangle(body.x, body.y, body.width, body.height));
       if (!point) continue;
@@ -327,6 +332,7 @@ export class GameScene extends Phaser.Scene {
 
   private damageEnemy(enemy: Enemy, damage: number): void {
     if (!enemy.active || !enemy.defeated) return;
+    if (enemy.bossId) this.campaign.defeatBoss(enemy.bossId);
     this.defeatEffects.show(enemy, this.hitStopActive);
     this.rules.recordKill(enemy.kind === 'boss' ? 20 : 3);
     this.combatAudio.kill();
@@ -335,7 +341,7 @@ export class GameScene extends Phaser.Scene {
     const healthBar = enemy.getData('healthBar') as Phaser.GameObjects.Graphics | undefined;
     healthBar?.destroy();
     enemy.destroy();
-    this.setMessage(this.enemies.countActive(true) === 0 ? 'Ворота внезапно согласовали проход — E у них' : `${enemy.displayName}: дело закрыто`);
+    this.setMessage(this.enemies.countActive(true) === 0 ? 'Путь открыт — E у выхода' : `${enemy.displayName}: дело закрыто`);
   }
 
   private resolveEnemyEvent(event: EnemyEvent): void {
@@ -481,16 +487,79 @@ export class GameScene extends Phaser.Scene {
   }
 
   private interact(): void {
+    if (this.rules.mode !== 'playing' || this.rules.cacheChoiceOpen) return;
     const cache = this.caches.find((item) => !item.used && Phaser.Math.Distance.Between(this.player.x, this.player.y, item.data.x, item.data.y) < 48);
     if (cache) {
       this.openCacheChoice(cache);
       return;
     }
+    if (this.campaign.nextScene === this.level.introScene && Math.abs(this.player.x - this.level.bossIntroX) <= 55) {
+      if (this.routeEnemiesRemain()) this.setMessage('Сначала расчистите путь к арене');
+      else this.beginDialogue(this.level.introScene);
+      return;
+    }
     if (Math.abs(this.player.x - this.level.exitX) > 55) return;
-    if (this.enemies.countActive(true) > 0) { this.setMessage('Ворота закрыты: комиссия просит убрать помехи'); return; }
-    if (this.rules.stage === 2) { this.rules.completeStage(true); this.onVictory(); return; }
-    this.rules.advanceStage();
-    this.buildStage(this.rules.stage);
+    if (this.enemies.countActive(true) > 0) { this.setMessage('Путь закрыт: рядом ещё противники'); return; }
+    this.beginDialogue(this.level.exitScene);
+  }
+
+  private routeEnemiesRemain(): boolean {
+    return this.enemies.getChildren().some(child => (child as Enemy).kind !== 'boss' && child.active);
+  }
+
+  private routeObjective(): string {
+    return ['Доберись до пекарни', 'Доберись до аэропорта', 'Доберись до дома Насти'][this.rules.stage];
+  }
+
+  private freezeWorld(): void {
+    this.physics.pause(); this.tweens.pauseAll(); this.time.paused = true;
+    this.pauseActorAnimations(); this.clearInput();
+    // Pause the native scene as well: particles and every UpdateList child stop with it.
+    this.scene.pause('Game');
+  }
+
+  private resumeWorld(): void {
+    this.scene.resume('Game');
+    this.time.paused = false; this.tweens.resumeAll(); this.physics.resume();
+    this.resumeActorAnimations(); this.clearInput();
+  }
+
+  private beginDialogue(id: StoryId): void {
+    if (this.rules.mode !== 'playing' || this.rules.cacheChoiceOpen) return;
+    const session = this.campaign.begin(id);
+    if (!session || !this.rules.beginDialogue()) return;
+    this.cancelPlayerActions(); this.cancelHitStop();
+    this.freezeWorld();
+    const music = this.ambience as (Phaser.Sound.WebAudioSound & { config: Phaser.Types.Sound.SoundConfig }) | undefined;
+    // The AudioParam getter can still report its default while the audio context unlocks.
+    if (music) { this.ambienceVolume = music.config.volume ?? 0.16; music.setVolume(this.ambienceVolume * 0.3); }
+    this.emitState();
+    this.scene.launch('Dialogue', { session });
+  }
+
+  private completeDialogue(session: StorySession): void {
+    if (this.rules.mode !== 'dialogue') return;
+    const effect = this.campaign.complete(session);
+    if (!effect) return;
+    this.rules.endDialogue();
+    this.cancelPlayerActions(); this.cancelEnemyActions(); this.cancelHitStop();
+    this.projectiles.clear(true, true);
+    (this.ambience as Phaser.Sound.WebAudioSound | undefined)?.setVolume(this.ambienceVolume);
+    this.resumeWorld();
+    if (effect.kind === 'boss') {
+      this.bossActivated = true;
+      this.enemies.getChildren().forEach(child => {
+        const enemy = child as Enemy;
+        if (enemy.bossId === effect.boss) enemy.activate();
+      });
+    } else if (effect.kind === 'stage') {
+      this.rules.stage = effect.stage;
+      this.buildStage(effect.stage);
+    } else if (effect.kind === 'victory') {
+      this.rules.mode = 'won'; this.onVictory(); return;
+    }
+    this.setMessage(this.routeObjective());
+    this.emitState();
   }
 
   private openCacheChoice(cache: CacheVisual): void {
@@ -552,16 +621,19 @@ export class GameScene extends Phaser.Scene {
   }
   private onVictory(): void {
     this.cancelPlayerActions(); this.cancelEnemyActions(); this.cancelHitStop();
-    this.setMessage('Порт очищен. Ночь пережита.', Number.POSITIVE_INFINITY);
+    this.setMessage('Заказ доставлен. Приятного аппетита.', Number.POSITIVE_INFINITY);
     this.physics.pause(); this.tweens.pauseAll(); this.time.paused = true; this.pauseActorAnimations(); this.clearInput(); this.emitState();
   }
 
   private handleCommand(command: GameCommand): void {
     if (command === 'start' || command === 'restart') {
-      this.rules.start(); this.time.paused = false; this.tweens.resumeAll(); this.physics.resume(); this.buildStage(0); this.startAmbience(); this.clearInput(); this.emitState(); return;
+      this.scene.stop('Dialogue');
+      (this.ambience as Phaser.Sound.WebAudioSound | undefined)?.setVolume(this.ambienceVolume);
+      this.campaign.reset(); this.rules.start(); this.resumeWorld(); this.buildStage(0); this.startAmbience();
+      this.beginDialogue('phone-call'); return;
     }
-    if (command === 'pause') { if (this.rules.pause()) { this.rules.cancelCacheChoice(); this.cancelPlayerActions(); this.cancelHitStop(); this.physics.pause(); this.tweens.pauseAll(); this.time.paused = true; this.pauseActorAnimations(); this.clearInput(); this.emitState(); } return; }
-    if (command === 'resume') { if (this.rules.resume()) { this.time.paused = false; this.tweens.resumeAll(); this.physics.resume(); this.resumeActorAnimations(); this.clearInput(); this.emitState(); } return; }
+    if (command === 'pause') { if (this.rules.pause()) { this.rules.cancelCacheChoice(); this.cancelPlayerActions(); this.cancelHitStop(); this.freezeWorld(); if (this.scene.isActive('Dialogue')) this.scene.pause('Dialogue'); this.emitState(); } return; }
+    if (command === 'resume') { if (this.rules.resume()) { if (this.rules.mode === 'dialogue') this.scene.resume('Dialogue'); else this.resumeWorld(); this.clearInput(); this.emitState(); } return; }
     if (command === 'heal') { this.tryHeal(); return; }
     if (command === 'cache-damage') { this.closeCacheChoice('damage'); return; }
     if (command === 'cache-health') { this.closeCacheChoice('health'); return; }
@@ -571,7 +643,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private pauseForFocusLoss(): void {
-    if (this.rules.mode === 'playing') this.handleCommand('pause');
+    if (this.rules.mode === 'playing' || this.rules.mode === 'dialogue') this.handleCommand('pause');
   }
   private clearInput(): void { this.input.keyboard?.resetKeys(); this.pressedActions.clear(); this.clearActionBuffers(); }
   private clearActionBuffers(): void { this.dashBufferMs = 0; this.jumpBufferMs = 0; }
@@ -605,6 +677,7 @@ export class GameScene extends Phaser.Scene {
     if (!this.cache.audio.exists('ambience')) return;
     this.ambience ??= this.sound.add('ambience', { loop: true, volume: 0.16 });
     if (!this.ambience.isPlaying) this.ambience.play();
+    (this.ambience as Phaser.Sound.WebAudioSound).setVolume(this.ambienceVolume);
   }
   private setMessage(message: string, durationMs = 2400): void {
     this.message = message;
@@ -616,8 +689,12 @@ export class GameScene extends Phaser.Scene {
       this.interactPrompt.setText('E — открыть тайник').setPosition(cache.data.x, cache.data.y - 27).setVisible(true);
       return;
     }
+    if (this.campaign.nextScene === this.level.introScene && Math.abs(this.player.x - this.level.bossIntroX) < 65) {
+      this.interactPrompt.setText(this.routeEnemiesRemain() ? 'Сначала расчистите маршрут' : 'E — поговорить').setPosition(this.level.bossIntroX, 214).setVisible(true);
+      return;
+    }
     if (Math.abs(this.player.x - this.level.exitX) < 65) {
-      this.interactPrompt.setText(this.enemies.countActive(true) ? 'E — ворота заперты' : 'E — пройти дальше').setPosition(this.level.exitX, 214).setVisible(true);
+      this.interactPrompt.setText(this.enemies.countActive(true) ? 'Путь закрыт' : this.rules.stage === 2 ? 'E — постучать' : 'E — пройти дальше').setPosition(this.level.exitX, 214).setVisible(true);
       return;
     }
     this.interactPrompt.setVisible(false);
@@ -629,7 +706,10 @@ export class GameScene extends Phaser.Scene {
   private snapshot(): GameSnapshot {
     const boss = this.enemies?.getChildren().map((child) => child as Enemy).find((enemy) => enemy.kind === 'boss');
     const bossVisible = Boolean(boss?.engaged);
-    return { mode: this.rules.mode, stage: this.rules.stage, location: this.level?.name ?? 'Двор после дождя', hp: this.rules.hp, maxHp: this.rules.maxHp, flasks: this.rules.flasks, kills: this.rules.kills, totalEnemies: this.level?.enemies.length ?? 0, shards: this.rules.shards, elapsed: Math.floor(this.rules.elapsed / 1000), dashReady: this.rules.dashReady, bossHp: bossVisible ? boss!.hp : 0, bossMaxHp: bossVisible ? boss!.maxHp : 0, objective: this.enemies?.countActive(true) ? 'Очистите путь к выходу' : 'E у ворот', message: this.rules.mode === 'title' || this.rules.elapsed < this.messageUntil ? this.message : '', weaponLevel: this.rules.weaponLevel, healing: this.rules.healing, healingProgress: this.rules.healingProgress, abilityReady: this.rules.abilityReady, abilityCooldownProgress: this.rules.abilityCooldownProgress, cacheChoiceOpen: this.rules.cacheChoiceOpen };
+    const objective = this.bossActivated && boss ? `Победи: ${boss.displayName}`
+      : this.campaign.nextScene === this.level.introScene && !this.routeEnemiesRemain() ? 'E у арены — поговорить'
+      : this.enemies?.countActive(true) ? this.routeObjective() : this.rules.stage === 2 ? 'E у двери Насти' : 'E у выхода';
+    return { mode: this.rules.mode, stage: this.rules.stage, location: this.level?.name ?? 'Батуми', hp: this.rules.hp, maxHp: this.rules.maxHp, flasks: this.rules.flasks, kills: this.rules.kills, totalEnemies: this.level?.enemies.length ?? 0, shards: this.rules.shards, elapsed: Math.floor(this.rules.elapsed / 1000), dashReady: this.rules.dashReady, bossHp: bossVisible ? boss!.hp : 0, bossMaxHp: bossVisible ? boss!.maxHp : 0, bossName: boss?.displayName ?? '', hasPackage: this.campaign.hasPackage, objective, message: this.rules.mode === 'title' || this.rules.elapsed < this.messageUntil ? this.message : '', weaponLevel: this.rules.weaponLevel, healing: this.rules.healing, healingProgress: this.rules.healingProgress, abilityReady: this.rules.abilityReady, abilityCooldownProgress: this.rules.abilityCooldownProgress, cacheChoiceOpen: this.rules.cacheChoiceOpen };
   }
   private emitState(): void { bridge.emit('state', this.snapshot()); }
   private cleanUp(): void {
@@ -640,7 +720,8 @@ export class GameScene extends Phaser.Scene {
     this.enemyPresentations.clear();
     bridge.off('command', this.commandHandler);
     this.input.keyboard?.off('keydown', this.pressHandler);
-    this.input.keyboard?.off('keydown-ESC', this.escapeHandler);
+    bridge.off('dialogue-complete', this.dialogueCompleteHandler);
+    this.scene.stop('Dialogue');
     this.input.keyboard?.off('keydown-M', this.muteHandler);
     this.input.off('pointerdown', this.pointerHandler);
     this.ambience?.destroy(); this.ambience = undefined;

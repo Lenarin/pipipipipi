@@ -1,12 +1,13 @@
 import { CacheChoiceState, HealingChannel, type CacheUpgrade } from './ActionState';
 
-export type RunMode = 'title' | 'playing' | 'paused' | 'dead' | 'won';
+export type RunMode = 'title' | 'playing' | 'dialogue' | 'paused' | 'dead' | 'won';
 export type CooldownName = 'dash' | 'heal' | 'hurt' | 'ability';
 export const ABILITY_COOLDOWN_MS = 1_700;
 
 /** Framework-independent run state and combat rules. Phaser only supplies input and collisions. */
 export class RunRules {
   mode: RunMode = 'title';
+  private pausedMode: 'playing' | 'dialogue' = 'playing';
   hp = 100;
   maxHp = 100;
   flasks = 2;
@@ -25,6 +26,7 @@ export class RunRules {
 
   start(): void {
     this.mode = 'playing';
+    this.pausedMode = 'playing';
     this.hp = 100;
     this.maxHp = 100;
     this.flasks = 2;
@@ -49,13 +51,26 @@ export class RunRules {
   }
 
   pause(): boolean {
-    if (this.mode !== 'playing') return false;
+    if (this.mode !== 'playing' && this.mode !== 'dialogue') return false;
+    this.pausedMode = this.mode;
     this.mode = 'paused';
     return true;
   }
 
   resume(): boolean {
     if (this.mode !== 'paused') return false;
+    this.mode = this.pausedMode;
+    return true;
+  }
+
+  beginDialogue(): boolean {
+    if (this.mode !== 'playing' || this.cacheChoiceOpen) return false;
+    this.mode = 'dialogue';
+    return true;
+  }
+
+  endDialogue(): boolean {
+    if (this.mode !== 'dialogue') return false;
     this.mode = 'playing';
     return true;
   }

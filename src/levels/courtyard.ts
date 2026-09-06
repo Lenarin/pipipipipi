@@ -1,7 +1,8 @@
 import type { LevelData } from './Level';
 
 export const courtyard: LevelData = {
-  name: 'Двор без гарантий', width: 1900, groundY: 312, exitX: 1815,
+  name: 'Последний с сыром', width: 1900, groundY: 312, exitX: 1815,
+  bossIntroX: 1710, bossId: 'mark', introScene: 'last-khachapuri', exitScene: 'wanted',
   platforms: [
     { x: 250, y: 280, width: 80 },
     { x: 365, y: 244, width: 120 },
@@ -17,6 +18,7 @@ export const courtyard: LevelData = {
     { id: 'yard-walker-1', kind: 'walker', x: 500 }, { id: 'yard-hound-1', kind: 'hound', x: 900 },
     { id: 'yard-spitter-1', kind: 'spitter', x: 850, y: 119 }, { id: 'yard-walker-2', kind: 'walker', x: 1130 },
     { id: 'yard-hound-2', kind: 'hound', x: 1460 }, { id: 'yard-spitter-2', kind: 'spitter', x: 1640 },
+    { id: 'bakery-mark', kind: 'boss', bossId: 'mark', faction: 'street', x: 1790 },
   ],
   caches: [{ x: 790, y: 186, upgrade: 'health' }, { x: 1510, y: 192, upgrade: 'damage' }],
 };

@@ -2,7 +2,8 @@ import { expect, test, type Page } from '@playwright/test';
 
 async function start(page: Page) {
   await page.goto('/');
-  await page.getByRole('button', { name: /ВОЙТИ В ГОРОД/ }).click();
+  await page.getByRole('button', { name: /Начать/ }).click();
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
   await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').player.grounded)).toBe(true);
 }
 
@@ -152,6 +153,8 @@ test('cache tray pauses combat, applies one keyboard choice, and resets on repla
   await expect(page.getByRole('group', { name: 'Выбор тайника' })).toBeHidden();
 
   await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').handleCommand('restart'));
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
+  await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').scene.isActive())).toBe(true);
   await page.evaluate(() => {
     const scene = (window as any).__GAME__.scene.getScene('Game');
     const cache = scene.caches[0];

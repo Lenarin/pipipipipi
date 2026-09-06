@@ -2,6 +2,7 @@
 import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene';
 import { GameScene } from './scenes/GameScene';
+import { DialogueScene } from './scenes/DialogueScene';
 import { bridge } from './game/bridge';
 import { mountUI, showLoadError } from './ui';
 import './style.css?v=0.7.0';
@@ -25,7 +26,7 @@ try {
     physics: { default: 'arcade', arcade: { gravity: { x: 0, y: 850 }, debug: false } },
     input: { keyboard: true, mouse: true },
     audio: { disableWebAudio: false },
-    scene: [BootScene, GameScene],
+    scene: [BootScene, GameScene, DialogueScene],
   });
   mountUI(game);
   if (import.meta.env.DEV) (window as unknown as { __GAME__: Phaser.Game }).__GAME__ = game;

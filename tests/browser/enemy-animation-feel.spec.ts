@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
 
 for (const kind of ['walker', 'spitter', 'hound']) test(`${kind} telegraph progresses through full-body preparation poses without resizing its body`, async ({ page }) => {
-  await page.goto('/'); await page.getByRole('button', { name: /ВОЙТИ В ГОРОД/ }).click();
+  await page.goto('/'); await page.getByRole('button', { name: /Начать/ }).click();
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
   const result = await page.evaluate(kind => {
     const s = (window as any).__GAME__.scene.getScene('Game'); s.scene.pause();
     const e = s.enemies.getChildren().find((e: any) => e.kind === kind);
@@ -21,7 +22,8 @@ for (const kind of ['walker', 'spitter', 'hound']) test(`${kind} telegraph progr
 });
 
 for (const attack of ['boss-slam', 'boss-volley']) test(`${attack} has four whole-body anticipation poses and a fixed Arcade body`, async ({ page }) => {
-  await page.goto('/'); await page.getByRole('button', { name: /ВОЙТИ В ГОРОД/ }).click();
+  await page.goto('/'); await page.getByRole('button', { name: /Начать/ }).click();
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
   const result = await page.evaluate(attack => {
     const s = (window as any).__GAME__.scene.getScene('Game'); s.buildStage(2); s.scene.pause();
     const e = s.enemies.getChildren().find((e: any) => e.kind === 'boss');

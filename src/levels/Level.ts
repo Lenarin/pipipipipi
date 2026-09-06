@@ -1,4 +1,4 @@
-import type { BossId } from '../story/story';
+import type { BossId, StoryId } from '../story/story';
 
 export type EnemyKind = 'walker' | 'spitter' | 'hound' | 'boss';
 export type EnemyFaction = 'street' | 'police' | 'federal';
@@ -10,6 +10,10 @@ export interface LevelData {
   width: number;
   groundY: number;
   exitX: number;
+  bossIntroX: number;
+  bossId: BossId;
+  introScene: StoryId;
+  exitScene: StoryId;
   platforms: PlatformData[];
   enemies: EnemySpawn[];
   caches: CacheData[];

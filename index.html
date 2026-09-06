@@ -3,30 +3,36 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#101a20" />
-    <meta name="description" content="После дождя: пиксельный экшен и коммунальная чёрная комедия в Батуми. Ты просто вышел за хлебом." />
-    <title>После дождя · Батуми</title>
+    <meta name="theme-color" content="#f5ead4" />
+    <meta name="description" content="Ларик. Пока горячий — пиксельный боевик про доставку одного хачапури из Батуми в Америку." />
+    <title>Ларик. Пока горячий</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
   </head>
   <body>
     <main id="app">
       <header class="topbar">
-        <a class="wordmark" href="./" aria-label="После дождя, главная"><span class="rain-mark" aria-hidden="true">╱╱╱</span> ПОСЛЕ ДОЖДЯ<span class="edition">КОММУНАЛЬНЫЙ ЭКШЕН</span></a>
+        <a class="wordmark" href="./" aria-label="Ларик. Пока горячий, главная"><span class="rain-mark" aria-hidden="true">↗</span> ЛАРИК<span class="edition">ПОКА ГОРЯЧИЙ</span></a>
         <nav class="tools" aria-label="Настройки игры">
           <button id="sound-button" class="tool" aria-pressed="false" title="Звук (M)"><span aria-hidden="true">♫</span><span id="sound-label">ЗВУК ВКЛ.</span></button>
           <button id="shake-button" class="tool" aria-pressed="true" title="Тряска камеры"><span aria-hidden="true">≈</span><span>ЭФФЕКТЫ</span></button>
           <button id="fullscreen-button" class="tool square" aria-label="На весь экран" title="На весь экран">⛶</button>
         </nav>
       </header>
-      <section class="game-shell" id="game-shell" aria-label="Игра После дождя">
+      <section class="game-shell" id="game-shell" aria-label="Игра Ларик. Пока горячий">
         <div id="game-container" tabindex="-1" aria-label="Игровое поле. Управление с клавиатуры"></div>
         <div class="vignette" aria-hidden="true"></div>
         <div id="hud" class="hud" hidden>
           <div class="vitals"><div class="vitals-label"><span>ЕЩЁ ЖИВОЙ</span><span id="health-label">100 / 100</span></div><div class="health-track" role="progressbar" aria-label="Здоровье" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><div id="health-fill"></div></div><div class="resources"><span id="flasks">▣ ▣ <small>АПТЕЧКИ</small></span><span id="shards">◇ 0</span></div></div>
-          <div class="location"><span id="chapter-label">01 / СТАРЫЕ ДВОРЫ</span><span id="objective">Найди выход к жилому кварталу</span></div>
+          <div class="location"><span id="chapter-label">01 / ПОСЛЕДНИЙ С СЫРОМ</span><span id="objective">Доберись до пекарни</span><span id="package-label" hidden>▣ ХАЧАПУРИ С СОБОЙ</span></div>
           <button id="pause-button" class="pause-button" aria-label="Пауза">Ⅱ</button>
         </div>
-        <div id="boss-hud" class="boss-hud" hidden><div><span>СТАРШИЙ ПО ПОРТУ</span><span id="boss-health-label"></span></div><div class="boss-track"><div id="boss-fill"></div></div></div>
+        <div id="boss-hud" class="boss-hud" hidden><div><span id="boss-name"></span><span id="boss-health-label"></span></div><div class="boss-track"><div id="boss-fill"></div></div></div>
+        <section id="dialogue-panel" class="dialogue-panel" role="group" aria-labelledby="dialogue-speaker" hidden>
+          <div class="dialogue-heading"><strong id="dialogue-speaker"></strong><span id="dialogue-position"></span></div>
+          <p id="dialogue-text" aria-hidden="true"></p>
+          <p id="dialogue-full-text" class="sr-only" aria-live="polite" aria-atomic="true"></p>
+          <div class="dialogue-actions"><button id="dialogue-next" type="button">Далее</button><button id="dialogue-skip" type="button">Пропустить сцену</button></div>
+        </section>
         <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
         <section id="cache-choice" class="cache-choice" role="group" aria-labelledby="cache-choice-title" hidden>
           <p class="cache-kicker">ТАЙНИК · E</p>
@@ -41,17 +47,17 @@
         <div id="overlay" class="overlay">
           <div class="title-content" id="title-content">
             <p class="eyebrow"><span class="live-dot"></span> БАТУМИ, ГРУЗИЯ <span class="coordinate">41°38′ N 41°38′ E</span></p>
-            <h1>ПОСЛЕ<br><span>ДОЖДЯ</span><i aria-hidden="true">.</i></h1>
-            <p class="intro">Ты просто вышел за хлебом.<br>Теперь весь двор хочет твою душу. И за коммуналку.</p>
+            <h1>ЛАРИК<span class="title-subtitle">ПОКА ГОРЯЧИЙ</span><i aria-hidden="true">.</i></h1>
+            <p class="intro">Один хачапури. Три границы терпения.<br>Доставь Насте обед из Батуми в Америку.</p>
             <button id="start-button" class="primary-button" disabled><span id="start-label">ЗАГРУЖАЕМ ГОРОД</span><span aria-hidden="true">↗</span></button>
             <div class="start-note" id="loading-status" role="status">Готовим улицы и персонажей…</div>
           </div>
-          <div class="title-bottom"><span>СМЕРТЬ НЕ ОСВОБОЖДАЕТ ОТ КВАРТПЛАТЫ</span><div class="route"><span class="current">01 ДВОРЫ</span><i></i><span>02 КВАРТАЛ</span><i></i><span>03 ПОРТ</span></div></div>
+          <div class="title-bottom"><span>ПАКЕТ НЕЛЬЗЯ. ОСТЫНЕТ.</span><div class="route"><span class="current">01 ПЕКАРНЯ</span><i></i><span>02 АЭРОПОРТ</span><i></i><span>03 АМЕРИКА</span></div></div>
           <div id="result-content" class="result-content" hidden><p class="eyebrow" id="result-eyebrow">ПЕРЕВЕДИ ДЫХАНИЕ</p><h2 id="result-title">Пауза</h2><p id="result-description"></p><div id="result-stats" class="result-stats"></div><button id="resume-button" class="primary-button">ПРОДОЛЖИТЬ <span aria-hidden="true">→</span></button><button id="restart-button" class="secondary-button">НАЧАТЬ ЗАНОВО</button></div>
         </div>
         <div class="in-game-bottom" id="in-game-bottom" hidden><span id="weapon-label"><b>ТРУБА</b> · КОМБО 1–1–2</span><span id="ability-label">F · ПИНОК ГОТОВ</span><span id="heal-label">Q · ЛЕЧЕНИЕ 0,75 С</span><span id="dash-label">SHIFT · РЫВОК ГОТОВ</span><span id="run-timer">00:00</span></div>
       </section>
-      <footer class="footer"><div class="controls" aria-label="Управление"><span><kbd>A</kbd><kbd>D</kbd> движение</span><span><kbd>ПРОБЕЛ</kbd> двойной прыжок</span><span><kbd>J</kbd> / ЛКМ · комбо</span><span><kbd>F</kbd> пинок</span><span><kbd>SHIFT</kbd> рывок</span><span><kbd>E</kbd> действие</span><span><kbd>Q</kbd> лечение</span></div><span class="build-label">ПРОТОТИП 0.7 <i></i> PHASER 4</span></footer>
+      <footer class="footer"><div class="controls" aria-label="Управление"><span><kbd>A</kbd><kbd>D</kbd> движение</span><span><kbd>ПРОБЕЛ</kbd> двойной прыжок</span><span><kbd>J</kbd> / ЛКМ · комбо</span><span><kbd>F</kbd> пинок</span><span><kbd>SHIFT</kbd> рывок</span><span><kbd>E</kbd> действие</span><span><kbd>Q</kbd> лечение</span></div><span class="build-label">ВЕРСИЯ 0.8 <i></i> PHASER 4</span></footer>
       <p class="device-note">Нужна клавиатура. Открой игру на компьютере; для удобства можно включить полный экран.</p>
     </main>
     <script type="module" src="/src/main.ts"></script>

@@ -14,4 +14,10 @@ describe('run presentation', () => {
     expect(resultContent('dead', 0).description.length).toBeGreaterThan(10);
     expect(resultContent('won', 2).title).not.toBe(resultContent('dead', 2).title);
   });
+  it('delivery result describes the package outcome and invites another attempt after failure', () => {
+    expect(resultContent('won', 2).title).toBe('Заказ доставлен');
+    expect(resultContent('won', 2).description).toContain('хачапури');
+    expect(resultContent('dead', 0).title).toBe('Доставка задерживается');
+    expect(resultContent('paused', 0).description).toContain('Пакет');
+  });
 });

@@ -3,7 +3,8 @@ import { HERO_PIPE_POSES, HERO_LAYOUT, posePoint } from '../../src/game/spriteFr
 
 async function start(page: Page) {
   await page.goto('/');
-  await page.getByRole('button', { name: /ВОЙТИ В ГОРОД/ }).click();
+  await page.getByRole('button', { name: /Начать/ }).click();
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
   await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').player.grounded)).toBe(true);
 }
 
@@ -115,7 +116,8 @@ test('roll and healing use distinct body frames and death animation completes wh
   });
   await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').player.frame.name)).toBe(35);
   expect(await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').physics.world.isPaused)).toBe(true);
-  await page.getByRole('button', { name: /ЕЩЁ ОДНА НОЧЬ/ }).click();
+  await page.getByRole('button', { name: /НОВАЯ ДОСТАВКА/ }).click();
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
   await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').player.grounded)).toBe(true);
   expect(await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').player.texture.key)).toBe('hero-full');
 });

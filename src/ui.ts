@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { bridge, type GameSnapshot, type GameCommand } from './game/bridge';
+import { bridge, type GameSnapshot, type GameCommand, type DialogueSnapshot } from './game/bridge';
 import { formatTime, resultContent } from './game/presentation';
 
 const byId = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -7,6 +7,22 @@ export function mountUI(game: Phaser.Game) {
   let mode: GameSnapshot['mode'] = 'title';
   let previousMode: GameSnapshot['mode'] = mode;
   let cacheWasOpen = false;
+  let dialogue: DialogueSnapshot | null = null;
+  const heldKeys = new Set<string>();
+  const blockedKeys = new Set<string>();
+  function placeDialogue() {
+    const canvas = game.canvas?.getBoundingClientRect();
+    if (!canvas?.width) return;
+    const shell = byId('game-shell').getBoundingClientRect();
+    const panel = byId('dialogue-panel');
+    panel.style.left = `${canvas.left - shell.left + canvas.width * 142 / 640}px`;
+    panel.style.top = `${canvas.top - shell.top + canvas.height * 240 / 360}px`;
+    panel.style.width = `${canvas.width * 356 / 640}px`;
+    panel.style.height = `${canvas.height * 107 / 360}px`;
+    panel.style.setProperty('--dialogue-font', `${canvas.width * 12 / 640}px`);
+  }
+  game.scale.on(Phaser.Scale.Events.RESIZE, () => requestAnimationFrame(placeDialogue));
+  new ResizeObserver(() => requestAnimationFrame(placeDialogue)).observe(byId('game-shell'));
   let muted = false;
   let shake = !matchMedia('(prefers-reduced-motion: reduce)').matches;
   try { muted = localStorage.getItem('after-rain-muted') === '1'; } catch { /* Storage is optional. */ }
@@ -35,6 +51,8 @@ export function mountUI(game: Phaser.Game) {
   byId('cache-damage').addEventListener('click', () => command('cache-damage'));
   byId('cache-health').addEventListener('click', () => command('cache-health'));
   byId('cache-cancel').addEventListener('click', () => command('cache-cancel'));
+  byId('dialogue-next').addEventListener('click', () => command('dialogue-next'));
+  byId('dialogue-skip').addEventListener('click', () => command('dialogue-skip'));
   soundButton.addEventListener('click', toggleMute);
   shakeButton.addEventListener('click', () => { shake = !shake; bridge.emit('command', 'shake'); reflectSettings(); });
   bridge.on('toggle-mute', toggleMute);
@@ -46,27 +64,70 @@ export function mountUI(game: Phaser.Game) {
   });
   bridge.on('ready', () => {
     byId<HTMLButtonElement>('start-button').disabled = false;
-    byId('start-label').textContent = 'ВОЙТИ В ГОРОД';
+    byId('start-label').textContent = 'Начать';
     byId('loading-status').textContent = 'ENTER, ЧТОБЫ НАЧАТЬ · НАУШНИКИ РЕКОМЕНДУЮТСЯ';
     if (!shake) bridge.emit('command', 'shake');
   });
-  document.addEventListener('keydown', event => {
+  window.addEventListener('keyup', event => { heldKeys.delete(event.code); blockedKeys.delete(event.code); }, true);
+  window.addEventListener('blur', () => { heldKeys.forEach(code => blockedKeys.add(code)); heldKeys.clear(); });
+  window.addEventListener('keydown', event => {
+    // A release outside the window has no keyup here; a fresh press is still valid.
+    if (!event.repeat && !heldKeys.has(event.code)) blockedKeys.delete(event.code);
+    heldKeys.add(event.code);
+    if (mode === 'playing' && blockedKeys.has(event.code)) {
+      event.preventDefault(); event.stopImmediatePropagation(); return;
+    }
+    if (event.code === 'Escape') {
+      event.preventDefault(); event.stopPropagation();
+      if (!event.repeat) command(cacheWasOpen ? 'cache-cancel' : mode === 'paused' ? 'resume' : 'pause');
+      return;
+    }
+    if (event.code === 'KeyM' && (mode === 'dialogue' || mode === 'paused')) {
+      event.preventDefault(); event.stopPropagation();
+      if (!event.repeat) toggleMute();
+      return;
+    }
+    if (mode === 'dialogue' && (event.code === 'Enter' || event.code === 'Space')) {
+      const focused = document.activeElement;
+      if (focused?.tagName === 'BUTTON' && !focused.id.startsWith('dialogue-')) return;
+      event.preventDefault(); event.stopPropagation();
+      if (!event.repeat) command(focused?.id === 'dialogue-skip' ? 'dialogue-skip' : 'dialogue-next');
+      return;
+    }
     if (event.code === 'Enter' && mode === 'title' && document.activeElement?.tagName !== 'BUTTON') {
-      if (!byId<HTMLButtonElement>('start-button').disabled) command('start');
+      event.preventDefault(); event.stopPropagation();
+      if (!event.repeat && !byId<HTMLButtonElement>('start-button').disabled) command('start');
     }
     if (byId('cache-choice').hidden) return;
     if (event.code === 'Digit1') { event.preventDefault(); command('cache-damage'); }
     else if (event.code === 'Digit2') { event.preventDefault(); command('cache-health'); }
+  }, true);
+  bridge.on('dialogue-state', (state: DialogueSnapshot | null) => {
+    dialogue = state;
+    const panel = byId('dialogue-panel');
+    panel.hidden = !state || mode !== 'dialogue';
+    if (!state) { if (mode === 'dialogue') byId('game-container').focus({ preventScroll: true }); return; }
+    panel.dataset.scene = state.session.id;
+    panel.dataset.line = String(state.lineIndex);
+    panel.dataset.finishedTyping = String(state.finishedTyping);
+    byId('dialogue-speaker').textContent = state.name;
+    byId('dialogue-text').textContent = state.visibleText;
+    const accessible = `${state.name}: ${state.fullText}`;
+    if (byId('dialogue-full-text').textContent !== accessible) byId('dialogue-full-text').textContent = accessible;
+    byId('dialogue-position').textContent = `${state.lineIndex + 1} / ${state.lineCount}`;
+    placeDialogue();
   });
   bridge.on('state', (state: GameSnapshot) => {
     previousMode = mode; mode = state.mode;
-    const inTitle = mode === 'title'; const playing = mode === 'playing';
+    if (previousMode !== mode) heldKeys.forEach(code => blockedKeys.add(code));
+    const inTitle = mode === 'title'; const playing = mode === 'playing'; const inDialogue = mode === 'dialogue';
     byId('hud').hidden = inTitle;
     byId('in-game-bottom').hidden = !playing;
-    byId('overlay').hidden = playing;
+    byId('overlay').hidden = playing || inDialogue;
+    byId('dialogue-panel').hidden = !inDialogue || !dialogue;
     byId('title-content').hidden = !inTitle;
     document.querySelector<HTMLElement>('.title-bottom')!.hidden = !inTitle;
-    byId('result-content').hidden = inTitle || playing;
+    byId('result-content').hidden = inTitle || playing || inDialogue;
     byId('health-label').textContent = `${Math.ceil(state.hp)} / ${state.maxHp}`;
     byId('health-fill').style.width = `${Math.max(0, state.hp / state.maxHp * 100)}%`;
     const health = document.querySelector<HTMLElement>('.health-track')!;
@@ -76,6 +137,7 @@ export function mountUI(game: Phaser.Game) {
     byId('shards').textContent = `◇ ${state.shards}`;
     byId('chapter-label').textContent = `${String(state.stage + 1).padStart(2, '0')} / ${state.location.toUpperCase()}`;
     byId('objective').textContent = state.objective;
+    byId('package-label').hidden = !state.hasPackage;
     const weaponLabel = byId('weapon-label');
     weaponLabel.replaceChildren();
     const weaponName = document.createElement('b');
@@ -88,21 +150,22 @@ export function mountUI(game: Phaser.Game) {
     byId('boss-hud').hidden = !playing || state.bossHp <= 0;
     byId('boss-fill').style.width = `${state.bossMaxHp ? state.bossHp / state.bossMaxHp * 100 : 0}%`;
     byId('boss-health-label').textContent = `${Math.ceil(state.bossHp)} / ${state.bossMaxHp}`;
+    byId('boss-name').textContent = state.bossName;
     byId('toast').hidden = !playing || !state.message;
     byId('toast').textContent = state.message;
     const cacheChoice = byId('cache-choice');
     cacheChoice.hidden = !state.cacheChoiceOpen;
     if (state.cacheChoiceOpen && !cacheWasOpen) byId<HTMLButtonElement>('cache-damage').focus({ preventScroll: true });
     cacheWasOpen = state.cacheChoiceOpen;
-    if (!playing && !inTitle) {
+    if (!playing && !inTitle && !inDialogue) {
       const content = resultContent(mode, state.stage);
       byId('result-title').textContent = content.title;
       byId('result-description').textContent = content.description;
-      byId('result-eyebrow').textContent = mode === 'paused' ? 'ТЕХНИЧЕСКИЙ ПЕРЕРЫВ' : mode === 'won' ? 'БАТУМИ · 06:14' : 'ВЫПИСАН ИЗ ДОМОФОНА';
+      byId('result-eyebrow').textContent = mode === 'paused' ? 'ПЕРЕРЫВ В ДОСТАВКЕ' : mode === 'won' ? 'ПОКА ГОРЯЧИЙ' : 'ПОПРОБУЕМ ЕЩЁ РАЗ';
       byId('resume-button').hidden = !content.resume;
       byId('restart-button').className = content.resume ? 'secondary-button' : 'primary-button';
-      byId('restart-button').textContent = content.resume ? 'НАЧАТЬ ЗАНОВО' : 'ЕЩЁ ОДНА НОЧЬ →';
-      byId('result-stats').textContent = `${formatTime(state.elapsed)} В ПУТИ     /     ${state.kills} ЖАЛОБ ЗАКРЫТО`;
+      byId('restart-button').textContent = content.resume ? 'НАЧАТЬ ЗАНОВО' : 'НОВАЯ ДОСТАВКА →';
+      byId('result-stats').textContent = `${formatTime(state.elapsed)} В ПУТИ     /     ${state.kills} ПРЕПЯТСТВИЙ ПОЗАДИ`;
       if (previousMode !== mode) byId(content.resume ? 'resume-button' : 'restart-button').focus({ preventScroll: true });
     }
   });

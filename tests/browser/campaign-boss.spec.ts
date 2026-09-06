@@ -2,7 +2,8 @@ import { expect, test, type Page } from '@playwright/test';
 
 async function start(page: Page) {
   await page.goto('/');
-  await page.getByRole('button', { name: /ВОЙТИ В ГОРОД/ }).click();
+  await page.getByRole('button', { name: /Начать/ }).click();
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
   await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').player.grounded)).toBe(true);
 }
 
@@ -105,6 +106,7 @@ test('a blocked pipe strike produces a compact shield cue and a non-impact sound
     scene.scene.pause();
     const chief = new Enemy(scene, 'test-chief-feedback', 'boss', 700, 260, { bossId: 'chief' });
     scene.enemies.add(chief);
+    scene.bossActivated = true;
     scene.enemyPresentations.set(chief.id, new EnemyAttackPresentation(scene));
     scene.player.body.reset(chief.x + 32, chief.y);
     scene.player.facing = -1;

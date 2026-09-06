@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
 
 test('the hero casts a ground contact shadow that stays on the surface during a jump', async ({ page }) => {
-  await page.goto('/'); await page.getByRole('button',{name:/ВОЙТИ В ГОРОД/}).click();
+  await page.goto('/'); await page.getByRole('button',{name:/Начать/}).click();
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
   await expect.poll(()=>page.evaluate(()=>(window as any).__GAME__.scene.getScene('Game').player.grounded)).toBe(true);
   const grounded = await page.evaluate(()=>{
     const s=(window as any).__GAME__.scene.getScene('Game'), shadow=s.children.getByName('hero-shadow');
@@ -22,7 +23,8 @@ test('the hero casts a ground contact shadow that stays on the surface during a 
 });
 
 test('running and landing create small ground droplets, idle does not continuously emit', async ({page})=>{
-  await page.goto('/'); await page.getByRole('button',{name:/ВОЙТИ В ГОРОД/}).click();
+  await page.goto('/'); await page.getByRole('button',{name:/Начать/}).click();
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
   await expect.poll(()=>page.evaluate(()=>(window as any).__GAME__.scene.getScene('Game').player.grounded)).toBe(true);
   await page.waitForTimeout(500);
   const idle=await page.evaluate(()=>{const s=(window as any).__GAME__.scene.getScene('Game');return s.children.getByName('ground-droplets')?.getAliveParticleCount()??-1;});
@@ -39,7 +41,8 @@ test('running and landing create small ground droplets, idle does not continuous
 });
 
 test('ground droplets freeze with the game on pause and resume afterward', async ({ page }) => {
-  await page.goto('/'); await page.getByRole('button',{name:/ВОЙТИ В ГОРОД/}).click();
+  await page.goto('/'); await page.getByRole('button',{name:/Начать/}).click();
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
   await expect.poll(()=>page.evaluate(()=>(window as any).__GAME__.scene.getScene('Game').player.grounded)).toBe(true);
   await page.evaluate(() => {
     const s = (window as any).__GAME__.scene.getScene('Game');

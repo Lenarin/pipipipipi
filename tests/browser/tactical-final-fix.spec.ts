@@ -2,7 +2,8 @@ import { expect, test, type Page } from '@playwright/test';
 
 async function start(page: Page) {
   await page.goto('/');
-  await page.getByRole('button', { name: /ВОЙТИ В ГОРОД/ }).click();
+  await page.getByRole('button', { name: /Начать/ }).click();
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
   await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').player.grounded)).toBe(true);
 }
 
@@ -16,6 +17,21 @@ async function openFirstCache(page: Page) {
   });
   await page.keyboard.press('KeyE', { delay: 35 });
   await expect(page.getByRole('group', { name: 'Выбор тайника' })).toBeVisible();
+}
+
+async function defeatFirstBoss(page: Page) {
+  await page.evaluate(() => {
+    const s = (window as any).__GAME__.scene.getScene('Game');
+    s.enemies.getChildren().filter((e: any) => e.kind !== 'boss').forEach((e: any) => e.destroy());
+    s.player.body.reset(s.level.bossIntroX, 280); s.interact();
+  });
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
+  await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').scene.isActive())).toBe(true);
+  await page.evaluate(() => {
+    const s = (window as any).__GAME__.scene.getScene('Game');
+    const boss = s.enemies.getChildren().find((e: any) => e.kind === 'boss');
+    boss.receiveHit(10000, 1); s.damageEnemy(boss, 10000);
+  });
 }
 
 test('cache cancel after the pause button cannot resume physics or timers', async ({ page }) => {
@@ -46,9 +62,9 @@ test('cache choice after blur cannot apply an upgrade or thaw the focused pause'
 
 test('stage transition cancels a real healing channel before the new stage can spend it', async ({ page }) => {
   await start(page);
+  await defeatFirstBoss(page);
   await page.evaluate(() => {
     const scene = (window as any).__GAME__.scene.getScene('Game');
-    scene.enemies.getChildren().forEach((enemy: any) => enemy.destroy());
     scene.rules.hp = 40;
   });
   await page.keyboard.press('KeyQ', { delay: 25 });
@@ -59,6 +75,7 @@ test('stage transition cancels a real healing channel before the new stage can s
     scene.player.body.reset(scene.level.exitX, 285);
   });
   await page.keyboard.press('KeyE', { delay: 35 });
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
   await page.waitForTimeout(600);
 
   expect(await page.evaluate(() => {
@@ -69,15 +86,16 @@ test('stage transition cancels a real healing channel before the new stage can s
 
 test('stage transition clears a live kick and queued player movement actions', async ({ page }) => {
   await start(page);
+  await defeatFirstBoss(page);
   await page.evaluate(() => {
     const scene = (window as any).__GAME__.scene.getScene('Game');
-    scene.enemies.getChildren().forEach((enemy: any) => enemy.destroy());
     scene.player.body.reset(scene.level.exitX, 285);
   });
   await page.keyboard.press('KeyF', { delay: 20 });
   await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').kick.active)).toBe(true);
   await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').dashBufferMs = 120);
   await page.keyboard.press('KeyE', { delay: 25 });
+  await page.getByRole('button', { name: 'Пропустить сцену' }).click();
 
   expect(await page.evaluate(() => {
     const scene = (window as any).__GAME__.scene.getScene('Game');
