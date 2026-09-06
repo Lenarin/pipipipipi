@@ -22,9 +22,9 @@ export type AttackEvent =
   | { type: 'idle' };
 
 export const PIPE_ATTACKS: readonly AttackProfile[] = [
-  { windupMs: 120, activeMs: 100, recoveryMs: 200, damageMultiplier: 1 },
-  { windupMs: 140, activeMs: 100, recoveryMs: 220, damageMultiplier: 1 },
-  { windupMs: 190, activeMs: 130, recoveryMs: 300, damageMultiplier: 2 },
+  { windupMs: 140, activeMs: 120, recoveryMs: 160, damageMultiplier: 1 },
+  { windupMs: 150, activeMs: 120, recoveryMs: 190, damageMultiplier: 1 },
+  { windupMs: 200, activeMs: 150, recoveryMs: 270, damageMultiplier: 2 },
 ];
 
 /**

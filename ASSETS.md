@@ -83,3 +83,18 @@ Created with built-in imagegen, with the existing enemy and boss art as identity
 Runtime uses the established deterministic chroma-key/component/registration pipeline, not generated animation at runtime. Standing anatomical scale is fixed within each creature; compressed poses are not enlarged. The hero remains 64 frames in 1536×1152; ordinary enemies now 64 in 1024×1024; boss 32 in 1024×512. Total 160 packed frames, including preserved legacy indexes. New ordinary attack frames 28–51/death 52–63; boss death 12–15/attacks 16–31.
 
 Ground contact, compact directional impact chips, quieter camera impulses, irregular plaster wear, shutter detail, paving highlights and arcade recesses are code-native Phaser visuals. No third-party art was downloaded, no new engine or audio dependency was introduced, and no runtime AI service is required.
+
+## Version 0.7 player attack readability (2026-09-06)
+
+Four new sources authored with built-in imagegen. Exact requests and identity/edit references are in [SPRITE-PROMPTS-0.7.json](docs/SPRITE-PROMPTS-0.7.json). Earlier images and the original photograph remain unchanged. The new locomotion sheet is a built-in edit of the existing character sheet, not a code-drawn replacement weapon.
+
+| Saved source | Frames | Role |
+| --- | ---: | --- |
+| `public/assets/hero-pipe-diagonal-v7-source.png` | 12 | Loaded shoulders, four descending forward contacts, planted recovery; 1536×1024 |
+| `public/assets/hero-pipe-sweep-v7-source.png` | 12 | Lower forward sweep, including low targets; 1536×1024 |
+| `public/assets/hero-pipe-heavy-v7-source.png` | 12 | Distinct overhead lift and heavier descending third strike; 1536×1024 |
+| `public/assets/hero-locomotion-v7-source.png` | 8 | Idle/run with the longer visible pipe; 1774×887 |
+
+Current hero atlas: 1792×1440, 76 registered frames of 224×144, foot/root registration (112,128). Four unused atlas cells are not registered. Wider frame padding accommodates the actual weapon without clipping. Arcade body dimensions and world placement remain unchanged; the x offset accounts for the extra transparent padding. All 36 pipe poses use one anatomical scale, 72/210; locomotion uses its measured standing scale, 72/275. Contacts are measured on visible grip/tip pixels, not an independently extended damage rectangle.
+
+The continuous trail is code-native Phaser Graphics. Collision between successive authored segments uses native Phaser triangle/rectangle intersection; fading trail history has no gameplay collision. No third-party art or new engine dependency was added.

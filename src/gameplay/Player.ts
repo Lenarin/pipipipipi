@@ -29,7 +29,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
     this.setScale(.6875).setOrigin(.5, HERO_LAYOUT.originY / HERO_LAYOUT.height);
     // Expanded frame; exactly the old Arcade body's size and position in world coordinates.
-    (this.body as Phaser.Physics.Arcade.Body).setSize(30, 60, false).setOffset(81, 68);
+    (this.body as Phaser.Physics.Arcade.Body).setSize(30, 60, false).setOffset(HERO_LAYOUT.anchorX - 15, 68);
     this.setCollideWorldBounds(true);
     this.setDepth(5);
   }

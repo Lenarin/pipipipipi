@@ -7,7 +7,7 @@ async function start(page: Page) {
   await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').player.grounded)).toBe(true);
 }
 
-test('all 160 packed frames contain artwork, no magenta, and contact markers land on visible pixels', async ({ page }) => {
+test('all 172 packed frames contain artwork, no magenta, and contact markers land on visible pixels', async ({ page }) => {
   await start(page);
   const markers = HERO_PIPE_POSES.flatMap((pose, i) => pose.contact ? [0, 2].map(j => {
     const p = posePoint(pose, pose.contact![j], pose.contact![j + 1]);
@@ -16,7 +16,7 @@ test('all 160 packed frames contain artwork, no magenta, and contact markers lan
   const result = await page.evaluate(markers => {
     const s = (window as any).__GAME__.scene.getScene('Game');
     const counts = [], empty = [], pink = [], clipped = [];
-    for (const [key, count] of [['hero-full', 64], ['enemy-full', 64], ['boss-full', 32]] as const) {
+    for (const [key, count] of [['hero-full', 76], ['enemy-full', 64], ['boss-full', 32]] as const) {
       const source = s.textures.get(key).getSourceImage();
       const c = source.getContext('2d');
       counts.push(s.textures.get(key).frameTotal - 1);
@@ -42,7 +42,7 @@ test('all 160 packed frames contain artwork, no magenta, and contact markers lan
     });
     return { counts, empty, pink, clipped, misses };
   }, markers);
-  expect(result).toEqual({ counts: [64, 64, 32], empty: [], pink: [], clipped: [], misses: [] });
+  expect(result).toEqual({ counts: [76, 64, 32], empty: [], pink: [], clipped: [], misses: [] });
 });
 
 test('three full-body strikes hit forward only, in both facings, for 16 / 16 / 32 damage', async ({ page }) => {
@@ -83,7 +83,7 @@ test('three full-body strikes hit forward only, in both facings, for 16 / 16 / 3
   });
   expect(result.hits.map(h => h.damage)).toEqual([16, 16, 32, 16, 16, 32]);
   expect(result.hits.map(h => h.behindDamage)).toEqual([0, 0, 0, 0, 0, 0]);
-  expect(result.hits.map(h => h.frame)).toEqual([43, 51, 59, 43, 51, 59]);
+  expect(result.hits.map(h => h.frame)).toEqual([44, 56, 68, 44, 56, 68]);
   expect(result.bodyAfter).toEqual(result.bodyBefore);
   expect(result.bodyAfter.w).toBeCloseTo(20.625);
   expect(result.bodyAfter.h).toBeCloseTo(41.25);

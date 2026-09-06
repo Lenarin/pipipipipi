@@ -1,7 +1,7 @@
 import type { AttackPhase } from '../gameplay/Combat';
 
 /** Pixel registration is shared by atlas packing and collision, never a second animation clock. */
-export const HERO_LAYOUT = { width: 192, height: 144, anchorX: 96, anchorY: 128, originY: 90 } as const;
+export const HERO_LAYOUT = { width: 224, height: 144, anchorX: 112, anchorY: 128, originY: 90 } as const;
 export interface SpritePose {
   anchorX: number;
   feetY: number;
@@ -22,19 +22,28 @@ export const HERO_COMBAT_POSES: readonly SpritePose[] = [
   heroPose(690, 1193, [742, 1102, 875, 1055]), heroPose(1044, 1193),
 ];
 export const HERO_LOCOMOTION_POSES: readonly SpritePose[] = [
-  [261,411], [669,411], [1090,411], [1483,411],
-  [247,800], [666,800], [1091,800], [1492,800],
-].map(([anchorX, feetY]) => ({ anchorX, feetY, scale: 72 / 330 }));
+  [250,374], [645,374], [1080,374], [1463,374],
+  [251,773], [658,773], [1094,773], [1466,773],
+].map(([anchorX, feetY]) => ({ anchorX, feetY, scale: 72 / 275 }));
 
-// v0.5: eight full-body poses per forward stroke, source 1024x1536.
-const pipePose = (anchorX: number, feetY: number, contact?: SpritePose['contact']): SpritePose => ({ anchorX, feetY, scale: 72 / 198, contact });
+// v0.7: twelve full-body poses per stroke, three independent 1536x1024 sheets.
+// Four preparations, four forward contacts, four recoveries. Anatomical scale is
+// fixed within each sheet; low poses are never enlarged to standing height.
+const pipePose = (anchorX: number, feetY: number, contact?: SpritePose['contact']): SpritePose => ({ anchorX, feetY, scale: 72 / 210, contact });
+export const PIPE_POSES_PER_STROKE = 12;
 export const HERO_PIPE_POSES: readonly SpritePose[] = [
-  pipePose(124,269), pipePose(368,269), pipePose(604,269), pipePose(811,269,[905,155,988,150]),
-  pipePose(98,528,[149,452,215,508]), pipePose(322,528), pipePose(604,528), pipePose(847,528),
-  pipePose(124,787), pipePose(369,787), pipePose(604,787), pipePose(811,787,[905,677,988,669]),
-  pipePose(98,1046,[149,971,215,1025]), pipePose(325,1046), pipePose(605,1046), pipePose(847,1046),
-  pipePose(124,1301), pipePose(347,1301), pipePose(580,1301), pipePose(789,1301,[864,1234,941,1276]),
-  pipePose(96,1533,[209,1465,294,1478]), pipePose(375,1533), pipePose(604,1533), pipePose(848,1533),
+  pipePose(170,329), pipePose(552,329), pipePose(913,329), pipePose(1290,329),
+  pipePose(155,643,[248,487,372,408]), pipePose(492,643,[605,516,766,510]),
+  pipePose(870,643,[998,553,1154,588]), pipePose(1251,643,[1377,598,1517,648]),
+  pipePose(119,953), pipePose(534,953), pipePose(886,953), pipePose(1253,953),
+  pipePose(155,334), pipePose(568,334), pipePose(917,334), pipePose(1293,334),
+  pipePose(118,648,[214,523,392,471]), pipePose(480,648,[600,536,776,532]),
+  pipePose(849,648,[968,558,1128,595]), pipePose(1223,648,[1334,602,1497,650]),
+  pipePose(107,955), pipePose(529,955), pipePose(882,955), pipePose(1234,955),
+  pipePose(161,329), pipePose(552,329), pipePose(938,329), pipePose(1302,329),
+  pipePose(151,644,[279,468,376,393]), pipePose(487,644,[605,519,784,515]),
+  pipePose(871,644,[987,574,1139,622]), pipePose(1252,644,[1376,616,1510,655]),
+  pipePose(125,953), pipePose(536,953), pipePose(892,953), pipePose(1246,953),
 ];
 export const ENEMY_RECOIL_POSES: readonly SpritePose[] = [
   [203,411], [510,413], [773,411], [1088,411],
@@ -86,9 +95,12 @@ export function enemyAttackFrame(kind: 'walker' | 'spitter' | 'hound', phase: 'w
 
 export function pipeFrame(step: number, phase: AttackPhase, progress: number): number {
   const p = Math.max(0, Math.min(1, progress));
-  const offset = phase === 'windup' ? (p < .25 ? 0 : p < .6 ? 1 : 2)
-    : phase === 'active' ? (p < .5 ? 3 : 4) : p < .35 ? 5 : p < .75 ? 6 : 7;
-  return Math.max(0, Math.min(2, step - 1)) * 8 + offset;
+  // Settle into the loaded silhouette quickly, then HOLD it. More drawings alone
+  // do not create readable anticipation when every drawing lasts a single tick.
+  const offset = phase === 'windup' ? (p < .15 ? 0 : p < .32 ? 1 : p < .92 ? 2 : 3)
+    : phase === 'active' ? (p < .22 ? 4 : p < .48 ? 5 : p < .72 ? 6 : 7)
+      : p < .4 ? 8 : p < .68 ? 9 : p < .87 ? 10 : 11;
+  return Math.max(0, Math.min(2, step - 1)) * PIPE_POSES_PER_STROKE + offset;
 }
 export const HERO_ACTION_POSES: readonly SpritePose[] = [
   [155,246], [466,246], [754,246], [1060,246],

@@ -4,11 +4,11 @@ import * as combat from '../src/gameplay/Combat';
 describe('P0 pipe rhythm and input lifetime', () => {
   it('gives preparation time to read while retaining a prompt first contact', () => {
     const chain = new combat.AttackChain(); chain.request(1);
-    expect(chain.advance(119)).toEqual([]);
+    expect(chain.advance(139)).toEqual([]);
     expect(chain.state.phase).toBe('windup');
     expect(chain.advance(1)).toEqual([{ type:'active', step:1, facing:1 }]);
-    expect(chain.advance(100)).toEqual([{ type:'recovery', step:1, facing:1 }]);
-    expect(chain.advance(199)).toEqual([]);
+    expect(chain.advance(120)).toEqual([{ type:'recovery', step:1, facing:1 }]);
+    expect(chain.advance(159)).toEqual([]);
     expect(chain.state.phase).toBe('recovery');
     expect(chain.advance(1)).toEqual([{ type:'idle' }]);
   });

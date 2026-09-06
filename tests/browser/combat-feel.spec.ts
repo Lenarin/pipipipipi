@@ -41,14 +41,14 @@ test('pipe preparation/contact/settling contain full-body transitions and miss t
   const result = await page.evaluate(() => {
     const s = (window as any).__GAME__.scene.getScene('Game'); s.scene.pause();
     s.attack.request(1); const frames = [], trails = [];
-    for (const dt of [0, 35, 40, 45, 55, 45, 80, 70]) {
+    for (const dt of [0, 25, 25, 80, 10, 30, 30, 30, 30, 80, 40, 30]) {
       s.attack.advance(dt); s.combatEffects.update(s.player, s.attack.state, s.attack.phaseProgress, s.attack.currentProfile);
       frames.push(s.player.frame.name); trails.push(s.combatEffects.trail?.visible ?? false);
     }
     return { frames, trails, count: s.textures.get('hero-full').frameTotal - 1 };
   });
   expect(new Set(result.frames).size).toBeGreaterThanOrEqual(7);
-  expect(result.count).toBe(64);
+  expect(result.count).toBe(76);
   expect(result.trails.some(Boolean)).toBe(true);
 });
 

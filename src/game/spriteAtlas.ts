@@ -62,20 +62,22 @@ function pack(scene: Phaser.Scene, sourceKey: string, poses: readonly SpritePose
   });
 }
 
-function register(scene: Phaser.Scene, key: string, canvas: HTMLCanvasElement, frameWidth: number, frameHeight: number) {
+function register(scene: Phaser.Scene, key: string, canvas: HTMLCanvasElement, frameWidth: number, frameHeight: number, endFrame = -1) {
   const texture = scene.textures.addCanvas(key, canvas)!;
-  scene.textures.addSpriteSheet('', texture, { frameWidth, frameHeight });
+  scene.textures.addSpriteSheet('', texture, { frameWidth, frameHeight, endFrame });
 }
 
 export function importAnimationSheets(scene: Phaser.Scene) {
   const { width, height, anchorX, anchorY } = HERO_LAYOUT;
-  const hero = document.createElement('canvas'); hero.width = width * 8; hero.height = height * 8;
+  const hero = document.createElement('canvas'); hero.width = width * 8; hero.height = height * 10;
   const out = hero.getContext('2d')!; out.imageSmoothingEnabled = false;
   pack(scene, 'hero-locomotion-source', HERO_LOCOMOTION_POSES, out, 0, width, height, anchorX, anchorY);
   pack(scene, 'hero-combat-source', HERO_COMBAT_POSES, out, 8, width, height, anchorX, anchorY);
   pack(scene, 'hero-actions-source', HERO_ACTION_POSES, out, 24, width, height, anchorX, anchorY);
-  pack(scene, 'hero-pipe-source', HERO_PIPE_POSES, out, 40, width, height, anchorX, anchorY);
-  register(scene, 'hero-full', hero, width, height);
+  ['diagonal', 'sweep', 'heavy'].forEach((stroke, i) => {
+    pack(scene, `hero-pipe-${stroke}-source`, HERO_PIPE_POSES.slice(i * 12, i * 12 + 12), out, 40 + i * 12, width, height, anchorX, anchorY);
+  });
+  register(scene, 'hero-full', hero, width, height, 75);
   const animation = (key: string, texture: string, frames: number[], fps: number, repeat = -1) => {
     if (scene.anims.exists(key)) scene.anims.remove(key);
     scene.anims.create({ key, frames: scene.anims.generateFrameNumbers(texture, { frames }), frameRate: fps, repeat });

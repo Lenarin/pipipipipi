@@ -5,6 +5,8 @@ import { resolve, extname, sep } from 'node:path';
 
 // Read-only local hosting check: production must work without root-level assets.
 const root = resolve('dist');
+const tag = process.argv[2] ?? 'v06';
+if (!/^[a-z0-9_-]+$/i.test(tag)) throw new Error('Use an alphanumeric artifact tag');
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.wav': 'audio/wav' };
 const server = createServer(async (request, response) => {
   const pathname = new URL(request.url, 'http://localhost').pathname;
@@ -34,7 +36,7 @@ try {
   const isolated = await page.evaluate(() => !('__GAME__' in window));
   if (health !== '100 / 100' || !isolated || errors.length || failed.length) throw new Error(JSON.stringify({ health, isolated, errors, failed }));
   await page.waitForTimeout(500);
-  await page.screenshot({ path: '.artifacts/production-v06-subpath-dpr2.png' });
+  await page.screenshot({ path: `.artifacts/production-${tag}-subpath-dpr2.png` });
   console.log(JSON.stringify({ passed: true, subpath: '/game/', deviceScaleFactor: 2, health, isolated, errors, failed }));
 } finally {
   await browser.close();

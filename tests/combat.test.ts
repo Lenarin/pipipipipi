@@ -7,19 +7,19 @@ describe('AttackChain', () => {
     expect(chain.request(1)).toBe(true);
     expect(chain.state).toMatchObject({ phase: 'windup', step: 1, facing: 1, queued: false });
 
-    expect(chain.advance(119)).toEqual([]);
+    expect(chain.advance(139)).toEqual([]);
     expect(chain.state.phase).toBe('windup');
     expect(chain.advance(1)).toEqual([{ type: 'active', step: 1, facing: 1 }]);
-    expect(chain.advance(100)).toEqual([{ type: 'recovery', step: 1, facing: 1 }]);
-    expect(chain.advance(200)).toEqual([{ type: 'idle' }]);
+    expect(chain.advance(120)).toEqual([{ type: 'recovery', step: 1, facing: 1 }]);
+    expect(chain.advance(160)).toEqual([{ type: 'idle' }]);
   });
 
   it('reports continuously increasing phase progress for renderer-driven sweeps', () => {
     const chain = new AttackChain();
     chain.request(1);
-    chain.advance(60);
+    chain.advance(70);
     expect(chain.phaseProgress).toBeCloseTo(0.5, 4);
-    chain.advance(60);
+    chain.advance(70);
     expect(chain.phaseProgress).toBe(0);
   });
 
@@ -42,7 +42,7 @@ describe('AttackChain', () => {
     chain.advance(160);
 
     expect(chain.state).toMatchObject({ phase: 'windup', step: 3, facing: -1 });
-    expect(chain.currentProfile).toMatchObject({ damageMultiplier: 2, windupMs: 190, activeMs: 130, recoveryMs: 300 });
+    expect(chain.currentProfile).toMatchObject({ damageMultiplier: 2, windupMs: 200, activeMs: 150, recoveryMs: 270 });
   });
 
   it('reverses a buffered second swing toward the latest attack intent', () => {

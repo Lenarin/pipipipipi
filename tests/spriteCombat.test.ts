@@ -12,14 +12,13 @@ describe('sprite-driven pipe combat', () => {
     expect(chain.request(1)).toBe(false);
   });
 
-  it('selects anticipation, two forward contacts and recovery from the authoritative phase', () => {
+  it('selects held anticipation, four forward contacts and recovery from the authoritative phase', () => {
     for (let step = 1; step <= 3; step++) {
-      const base = (step - 1) * 8;
+      const base = (step - 1) * 12;
       expect(pipeFrame(step, 'windup', .9)).toBe(base + 2);
-      expect(pipeFrame(step, 'active', 0)).toBe(base + 3);
-      expect(pipeFrame(step, 'active', .9)).toBe(base + 4);
-      expect(pipeFrame(step, 'recovery', 0)).toBe(base + 5);
-      for (const frame of [base + 3, base + 4]) {
+      expect([0, .3, .6, .9].map(p => pipeFrame(step, 'active', p))).toEqual([base + 4, base + 5, base + 6, base + 7]);
+      expect(pipeFrame(step, 'recovery', 0)).toBe(base + 8);
+      for (const frame of [base + 4, base + 5, base + 6, base + 7]) {
         const pose = HERO_PIPE_POSES[frame];
         const right = contactInWorld(pose, 100, 200, .6875, 1)!;
         const left = contactInWorld(pose, 100, 200, .6875, -1)!;

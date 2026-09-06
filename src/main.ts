@@ -4,7 +4,7 @@ import { BootScene } from './scenes/BootScene';
 import { GameScene } from './scenes/GameScene';
 import { bridge } from './game/bridge';
 import { mountUI, showLoadError } from './ui';
-import './style.css?v=0.6.0';
+import './style.css?v=0.7.0';
 
 let fullyReady = false;
 const reportStartupError = (event: ErrorEvent) => {

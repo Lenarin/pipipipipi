@@ -2,9 +2,10 @@ import Phaser from 'phaser';
 import type { AttackProfile, AttackState } from '../gameplay/Combat';
 import type { KickAction } from '../gameplay/ActionState';
 import type { Player } from '../gameplay/Player';
-import { pipeFrame, contactInWorld, HERO_COMBAT_POSES, HERO_PIPE_POSES, kickFrame } from './spriteFrames';
+import { pipeFrame, contactInWorld, HERO_COMBAT_POSES, HERO_PIPE_POSES, PIPE_POSES_PER_STROKE, kickFrame } from './spriteFrames';
+import { pipeRibbon, sweptPipeContact } from './pipeSweep';
 
-/** Visual-only combat feedback. Physics and timing remain in GameScene and AttackChain. */
+/** Sprite-synchronized contacts and feedback. Physics/rules/timing remain in GameScene and AttackChain. */
 export class CombatEffects {
   private readonly channel: Phaser.GameObjects.Graphics;
   private previousStrike: Phaser.Geom.Line | null = null;
@@ -12,11 +13,14 @@ export class CombatEffects {
   private currentSegment: Phaser.Geom.Line | null = null;
   private currentKick: Phaser.Geom.Rectangle | null = null;
   private previousSwing = 0;
+  private previousFrame = -1;
+  private previousFacing = 1;
+  private trailStep = 1;
   private readonly trail: Phaser.GameObjects.Graphics;
   private trailHistory: { line: Phaser.Geom.Line; age: number }[] = [];
 
   constructor(private readonly scene: Phaser.Scene) {
-    this.trail = scene.add.graphics().setDepth(4).setName('pipe-trail').setVisible(false);
+    this.trail = scene.add.graphics().setDepth(3.8).setName('pipe-trail').setVisible(false);
     this.channel = scene.add.graphics().setDepth(11).setVisible(false);
   }
 
@@ -26,18 +30,29 @@ export class CombatEffects {
     const contact = attack.phase === 'active' && !player.isDashing && !player.isHurt
       ? contactInWorld(HERO_PIPE_POSES[frame], player.x, player.y, player.scaleX, attack.facing) : null;
     this.currentSegment = contact ? new Phaser.Geom.Line(contact.x1, contact.y1, contact.x2, contact.y2) : null;
-    this.sweptSegments = this.currentSegment ? [this.currentSegment] : [];
-    if (this.currentSegment && this.previousStrike && this.previousSwing === attack.step) {
-      this.sweptSegments.push(new Phaser.Geom.Line(this.previousStrike.x2, this.previousStrike.y2, this.currentSegment.x2, this.currentSegment.y2));
-      this.sweptSegments.push(new Phaser.Geom.Line(this.previousStrike.x1, this.previousStrike.y1, this.currentSegment.x1, this.currentSegment.y1));
+    this.sweptSegments = [];
+    if (this.currentSegment) {
+      const continuous = this.previousStrike && this.previousSwing === attack.step && this.previousFacing === attack.facing && this.previousFrame <= frame;
+      if (continuous) this.sweptSegments.push(this.previousStrike!);
+      // A slow render tick may skip an authored pose. Include each crossed pose,
+      // not just a chord between the two rendered endpoints that cuts the arc short.
+      const first = continuous ? this.previousFrame + 1 : (attack.step - 1) * PIPE_POSES_PER_STROKE + 4;
+      for (let pose = first; pose < frame; pose++) {
+        const p = contactInWorld(HERO_PIPE_POSES[pose], player.x, player.y, player.scaleX, attack.facing)!;
+        this.sweptSegments.push(new Phaser.Geom.Line(p.x1, p.y1, p.x2, p.y2));
+      }
+      this.sweptSegments.push(this.currentSegment);
     }
     this.drawTrail(attack, delta);
     this.previousStrike = this.currentSegment;
     this.previousSwing = attack.step;
+    this.previousFrame = frame;
+    this.previousFacing = attack.facing;
   }
 
   clear(): void {
     this.previousStrike = this.currentSegment = null;
+    this.previousFrame = -1;
     this.sweptSegments = []; this.currentKick = null;
     this.trailHistory = []; this.trail.clear().setVisible(false);
     this.channel.clear().setVisible(false);
@@ -45,27 +60,37 @@ export class CombatEffects {
 
   private drawTrail(attack: AttackState, delta: number): void {
     this.trail.clear();
-    if (attack.phase === 'windup' || attack.step !== this.previousSwing) this.trailHistory = [];
-    this.trailHistory = this.trailHistory.map(p => ({ ...p, age: p.age + delta })).filter(p => p.age < 90);
-    if (this.currentSegment) this.trailHistory.push({ line: Phaser.Geom.Line.Clone(this.currentSegment), age: 0 });
+    if (attack.phase === 'windup' || (attack.step > 0 && attack.step !== this.previousSwing)) this.trailHistory = [];
+    this.trailHistory = this.trailHistory.map(p => ({ ...p, age: p.age + delta })).filter(p => p.age < 110);
+    if (this.currentSegment) {
+      this.trailStep = attack.step;
+      for (const line of this.sweptSegments) {
+        const last = this.trailHistory[this.trailHistory.length - 1];
+        if (last && last.line.x1 === line.x1 && last.line.y1 === line.y1 && last.line.x2 === line.x2 && last.line.y2 === line.y2) last.age = 0;
+        else this.trailHistory.push({ line: Phaser.Geom.Line.Clone(line), age: 0 });
+      }
+    }
     this.trail.setVisible(this.trailHistory.length > 0);
     for (let i = 0; i < this.trailHistory.length; i++) {
-      const { line, age } = this.trailHistory[i], alpha = (1 - age / 90) * .48;
+      const { line, age } = this.trailHistory[i], alpha = (1 - age / 110);
       const previous = this.trailHistory[i - 1]?.line;
       if (previous) {
-        this.trail.fillStyle(attack.step === 3 ? 0xe9ba80 : 0xc4dfd5, alpha * .5);
-        this.trail.fillPoints([new Phaser.Math.Vector2(Math.round(previous.x1), Math.round(previous.y1)), new Phaser.Math.Vector2(Math.round(previous.x2), Math.round(previous.y2)), new Phaser.Math.Vector2(Math.round(line.x2), Math.round(line.y2)), new Phaser.Math.Vector2(Math.round(line.x1), Math.round(line.y1))], true);
-        this.trail.lineStyle(attack.step === 3 ? 3 : 2, 0xffe6b2, alpha);
+        this.trail.fillStyle(this.trailStep === 3 ? 0xc99d68 : 0x8ebfb1, alpha * .42);
+        for (const triangle of pipeRibbon(previous, line)) this.trail.fillTriangleShape(triangle);
+        this.trail.lineStyle(this.trailStep === 3 ? 4 : 3, this.trailStep === 3 ? 0xffd6a0 : 0xd8f0dd, alpha * .85);
         this.trail.lineBetween(Math.round(previous.x2), Math.round(previous.y2), Math.round(line.x2), Math.round(line.y2));
       }
-      this.trail.lineStyle(2, 0xe9eee0, alpha).lineBetween(Math.round(line.x1), Math.round(line.y1), Math.round(line.x2), Math.round(line.y2));
+      this.trail.lineStyle(1, 0xd9eee0, alpha * .5).lineBetween(Math.round(line.x1), Math.round(line.y1), Math.round(line.x2), Math.round(line.y2));
     }
   }
 
   /** Source-pixel contact markers, transformed with the visible full-body frame. */
   get strikeSegment(): Phaser.Geom.Line | null { return this.currentSegment; }
   get strikeSweep(): readonly Phaser.Geom.Line[] { return this.sweptSegments; }
-  get strikeThickness(): number { return 5; }
+  get strikeThickness(): number { return 7; }
+  strikeContact(target: Phaser.Geom.Rectangle): Phaser.Types.Math.Vector2Like | null {
+    return sweptPipeContact(this.sweptSegments, target, this.strikeThickness / 2);
+  }
   get kickBounds(): Phaser.Geom.Rectangle | null { return this.currentKick; }
 
   updateKick(player: Player, kick: KickAction): void {

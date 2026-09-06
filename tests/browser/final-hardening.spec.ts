@@ -20,7 +20,7 @@ test('M toggles sound from the title and from paused gameplay', async ({ page })
 
 test('a failed visual asset offers retry and recovers on reload', async ({ page }) => {
   let shouldFail = true;
-  await page.route('**/assets/hero-locomotion-v4-source.png', async route => {
+  await page.route('**/assets/hero-locomotion-*-source.png', async route => {
     if (shouldFail) await route.abort();
     else await route.continue();
   });

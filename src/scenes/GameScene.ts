@@ -133,9 +133,14 @@ export class GameScene extends Phaser.Scene {
     if (step.jumped) this.playSound('jump');
     if (step.dashed) { this.rules.grantImmunity(190); this.combatEffects.dashBurst(this.player.x, this.player.y, this.player.facing); this.playSound('dash'); }
     if (step.dashEnded) this.combatEffects.dashBurst(this.player.x, this.player.y, this.player.facing, true);
-    this.combatEffects.update(this.player, this.attack.state, this.attack.phaseProgress, this.attack.currentProfile, delta);
+    // Resolve the active portion of a tick that crosses into recovery. Otherwise
+    // its final authored contact disappears at low/uneven frame rates.
+    const finishingContact = attackEvents.some(event => event.type === 'recovery');
+    this.combatEffects.update(this.player, finishingContact ? { ...this.attack.state, phase: 'active' } : this.attack.state,
+      finishingContact ? 1 : this.attack.phaseProgress, this.attack.currentProfile, delta);
     this.resolveAttackEvents(attackEvents);
-    this.resolveActiveAttack();
+    this.resolveActiveAttack(finishingContact);
+    if (finishingContact) this.combatEffects.update(this.player, this.attack.state, this.attack.phaseProgress, this.attack.currentProfile, 0);
     this.combatEffects.updateKick(this.player, this.kick);
     this.resolveKick();
     this.kick.advance(delta);
@@ -288,8 +293,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Intersect live Arcade bodies with the same rendered blade segment used for feedback. */
-  private resolveActiveAttack(): void {
-    if (this.attack.state.phase !== 'active' || this.activeSwing === null || !this.attack.currentProfile) return;
+  private resolveActiveAttack(finishingContact = false): void {
+    const activeInterval = this.attack.state.phase === 'active' || (finishingContact && this.attack.state.phase === 'recovery');
+    if (!activeInterval || this.activeSwing === null || !this.attack.currentProfile) return;
     const { facing } = this.attack.state;
     const { damageMultiplier } = this.attack.currentProfile;
     const strikes = this.combatEffects.strikeSweep;
@@ -298,13 +304,9 @@ export class GameScene extends Phaser.Scene {
     for (const child of [...this.enemies.getChildren()]) {
       const enemy = child as Enemy;
       const body = enemy.body as Phaser.Physics.Arcade.Body;
-      const padding = this.combatEffects.strikeThickness / 2;
-      const targetBounds = new Phaser.Geom.Rectangle(body.x - padding, body.y - padding, body.width + padding * 2, body.height + padding * 2);
-      if (strikes.every((strike) => !Phaser.Geom.Intersects.LineToRectangle(strike, targetBounds))) continue;
+      const point = this.combatEffects.strikeContact(new Phaser.Geom.Rectangle(body.x, body.y, body.width, body.height));
+      if (!point) continue;
       if (this.rules.hitTarget(this.activeSwing, enemy.id) && enemy.receiveHit(damage, facing, this.attack.state.step === 3)) {
-        const strike = strikes.find(line => Phaser.Geom.Intersects.LineToRectangle(line, targetBounds))!;
-        const intersections = Phaser.Geom.Intersects.GetLineToRectangle(strike, targetBounds);
-        const point = intersections[0] ?? { x: (strike.x1 + strike.x2) / 2, y: (strike.y1 + strike.y2) / 2 };
         const x = Phaser.Math.Clamp(point.x, body.x, body.right), y = Phaser.Math.Clamp(point.y, body.y, body.bottom);
         this.combatEffects.confirmHit(x, y, damage, this.attack.state.step === 3, facing, this.shakeEnabled);
         if (this.stoppedSwing !== this.activeSwing) {

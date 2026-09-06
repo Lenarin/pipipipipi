@@ -8,9 +8,11 @@ export class BootScene extends Phaser.Scene {
   preload() {
     const base = import.meta.env.BASE_URL;
     this.load.image('city', `${base}assets/batumi.png`);
-    this.load.image('hero-locomotion-source', `${base}assets/hero-locomotion-v4-source.png`);
+    this.load.image('hero-locomotion-source', `${base}assets/hero-locomotion-v7-source.png`);
     this.load.image('hero-combat-source', `${base}assets/hero-combat-v4-source.png`);
-    this.load.image('hero-pipe-source', `${base}assets/hero-combat-v5-source.png`);
+    for (const stroke of ['diagonal', 'sweep', 'heavy']) {
+      this.load.image(`hero-pipe-${stroke}-source`, `${base}assets/hero-pipe-${stroke}-v7-source.png`);
+    }
     this.load.image('enemy-recoil-source', `${base}assets/enemy-recoil-v5-source.png`);
     this.load.image('enemy-death-source', `${base}assets/enemy-death-v6-source.png`);
     this.load.image('boss-attack-source', `${base}assets/boss-attacks-v6-source.png`);

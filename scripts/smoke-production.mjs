@@ -1,6 +1,8 @@
 import { chromium } from '@playwright/test';
 
 const channel = process.argv[3] ?? 'chromium';
+const tag = process.argv[4] ?? 'v06';
+if (!/^[a-z0-9_-]+$/i.test(tag)) throw new Error('Use an alphanumeric artifact tag');
 if (!['chromium', 'chrome', 'msedge'].includes(channel)) throw new Error('Channel must be chromium, chrome or msedge');
 const browser = await chromium.launch({ headless: true, ...(channel === 'chromium' ? {} : { channel }) });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
@@ -30,9 +32,9 @@ try {
     const r = document.querySelector('canvas').getBoundingClientRect();
     return Math.abs(r.top - (innerHeight - r.bottom)) < 2;
   })());
-  await page.screenshot({ path: `.artifacts/production-v06-${channel}-fullscreen.png` });
+  await page.screenshot({ path: `.artifacts/production-${tag}-${channel}-fullscreen.png` });
   await page.evaluate(() => document.exitFullscreen());
-  await page.screenshot({ path: `.artifacts/production-v06-${channel}.png` });
+  await page.screenshot({ path: `.artifacts/production-${tag}-${channel}.png` });
   if (errors.length || failedRequests.length) throw new Error(JSON.stringify({ errors, failedRequests }));
   console.log(JSON.stringify({ productionSmoke: 'passed', browser: channel, version: browser.version(), fullscreenCentered: true, start: true, input: true, pause: true, restart: true, health, devHandleAbsent: true, errors, failedRequests }));
 } finally {
