@@ -75,11 +75,11 @@ Created with built-in imagegen, with the existing enemy and boss art as identity
 
 | Saved source | Frames | Role |
 | --- | ---: | --- |
-| `public/assets/enemy-attacks-v6-source.png` | 24 | Four anticipation, two active, two recovery poses per walker/spitter/hound;1254×1254 |
-| `public/assets/enemy-death-v6-source.png` | 12 | Four non-graphic whole-body collapse poses per ordinary enemy;1254×1254 |
-| `public/assets/boss-death-v6-source.png` | 4 | Complete port-foreman collapse;2172×724; first three source poses normalized to face right |
-| `public/assets/boss-attacks-v6-source.png` | 16 | Eight poses each for anchor slam and volley;1536×1024 |
+| `public/assets/enemy-attacks-v6-source.png` | 24 | Four anticipation, two active, two recovery poses per walker/spitter/hound; 1254×1254 |
+| `public/assets/enemy-death-v6-source.png` | 12 | Four non-graphic whole-body collapse poses per ordinary enemy; 1254×1254 |
+| `public/assets/boss-death-v6-source.png` | 4 | Complete port-foreman collapse; 2172×724; first three source poses normalized to face right |
+| `public/assets/boss-attacks-v6-source.png` | 16 | Eight poses each for anchor slam and volley; 1536×1024 |
 
-Runtime uses the established deterministic chroma-key/component/registration pipeline, not generated animation at runtime. Standing anatomical scale is fixed within each creature; compressed poses are not enlarged. The hero remains64 frames in1536×1152; ordinary enemies now64 in1024×1024; boss32 in1024×512. Total160 packed frames, including preserved legacy indexes. New ordinary attack frames28–51/death52–63; boss death12–15/attacks16–31.
+Runtime uses the established deterministic chroma-key/component/registration pipeline, not generated animation at runtime. Standing anatomical scale is fixed within each creature; compressed poses are not enlarged. The hero remains 64 frames in 1536×1152; ordinary enemies now 64 in 1024×1024; boss 32 in 1024×512. Total 160 packed frames, including preserved legacy indexes. New ordinary attack frames 28–51/death 52–63; boss death 12–15/attacks 16–31.
 
 Ground contact, compact directional impact chips, quieter camera impulses, irregular plaster wear, shutter detail, paving highlights and arcade recesses are code-native Phaser visuals. No third-party art was downloaded, no new engine or audio dependency was introduced, and no runtime AI service is required.

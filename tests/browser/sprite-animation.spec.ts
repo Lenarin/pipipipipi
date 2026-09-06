@@ -15,7 +15,7 @@ test('all 160 packed frames contain artwork, no magenta, and contact markers lan
   }) : []);
   const result = await page.evaluate(markers => {
     const s = (window as any).__GAME__.scene.getScene('Game');
-    const counts = [], empty = [], pink = [];
+    const counts = [], empty = [], pink = [], clipped = [];
     for (const [key, count] of [['hero-full', 64], ['enemy-full', 64], ['boss-full', 32]] as const) {
       const source = s.textures.get(key).getSourceImage();
       const c = source.getContext('2d');
@@ -23,11 +23,14 @@ test('all 160 packed frames contain artwork, no magenta, and contact markers lan
       for (let i = 0; i < count; i++) {
         const f = s.textures.getFrame(key, i);
         const data = c.getImageData(f.cutX, f.cutY, f.cutWidth, f.cutHeight).data;
-        let opaque = 0;
+        let opaque = 0, touchesEdge = false;
         for (let p = 0; p < data.length; p += 4) if (data[p + 3] > 100) {
           opaque++;
+          const pixel = p / 4, x = pixel % f.cutWidth, y = Math.floor(pixel / f.cutWidth);
+          if (x === 0 || y === 0 || x === f.cutWidth - 1 || y === f.cutHeight - 1) touchesEdge = true;
           if (data[p] > 180 && data[p + 2] > 180 && data[p + 1] < 80) pink.push(`${key}:${i}`);
         }
+        if (touchesEdge) clipped.push(`${key}:${i}`);
         if (opaque < 120) empty.push(`${key}:${i}`);
       }
     }
@@ -37,9 +40,9 @@ test('all 160 packed frames contain artwork, no magenta, and contact markers lan
       }
       return true;
     });
-    return { counts, empty, pink, misses };
+    return { counts, empty, pink, clipped, misses };
   }, markers);
-  expect(result).toEqual({ counts: [64, 64, 32], empty: [], pink: [], misses: [] });
+  expect(result).toEqual({ counts: [64, 64, 32], empty: [], pink: [], clipped: [], misses: [] });
 });
 
 test('three full-body strikes hit forward only, in both facings, for 16 / 16 / 32 damage', async ({ page }) => {
