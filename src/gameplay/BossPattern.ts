@@ -3,12 +3,12 @@ import type { EnemyAttackProfile, EnemyPhase } from './EnemyAttackCycle';
 
 const attacks: Readonly<Record<BossId, readonly EnemyAttackProfile[]>> = {
   mark: [
-    { attack: 'mark-lunge', windupMs: 540, activeMs: 220, recoveryMs: 520, damage: 18, reach: 112, thickness: 38, motion: 'thrust', speed: 260 },
-    { attack: 'mark-heavy', windupMs: 860, activeMs: 260, recoveryMs: 900, damage: 28, reach: 158, thickness: 70, motion: 'slam', speed: 55 },
+    { attack: 'mark-lunge', windupMs: 540, activeMs: 220, recoveryMs: 520, damage: 18, reach: 44, thickness: 20, motion: 'thrust', speed: 260 },
+    { attack: 'mark-heavy', windupMs: 860, activeMs: 260, recoveryMs: 900, damage: 28, reach: 24, thickness: 50, motion: 'slam', speed: 55 },
   ],
   chief: [
-    { attack: 'chief-charge', windupMs: 780, activeMs: 460, recoveryMs: 850, damage: 22, reach: 54, thickness: 54, motion: 'charge', speed: 230 },
-    { attack: 'chief-baton', windupMs: 620, activeMs: 180, recoveryMs: 560, damage: 18, reach: 82, thickness: 44, motion: 'thrust', speed: 75 },
+    { attack: 'chief-charge', windupMs: 780, activeMs: 460, recoveryMs: 850, damage: 22, reach: 26, thickness: 44, motion: 'charge', speed: 230 },
+    { attack: 'chief-baton', windupMs: 620, activeMs: 180, recoveryMs: 560, damage: 18, reach: 30, thickness: 24, motion: 'thrust', speed: 75 },
   ],
   miller: [
     { attack: 'miller-volley', windupMs: 900, activeMs: 140, recoveryMs: 900, damage: 17, reach: 360, thickness: 24, motion: 'cast', recoverySpeed: 110 },
@@ -24,6 +24,11 @@ export class BossPattern {
   constructor(readonly id: BossId) {}
 
   get attackCount(): number { return attacks[this.id].length; }
+  /** Approach until the next commitment can actually connect during its active movement. */
+  get engagementRange(): number {
+    const profile = attacks[this.id][this.nextAttackIndex];
+    return profile.motion === 'cast' ? 340 : 10 + profile.reach + (profile.speed ?? 0) * profile.activeMs / 1000 * .75;
+  }
 
   nextProfile(): EnemyAttackProfile {
     const sequence = attacks[this.id];

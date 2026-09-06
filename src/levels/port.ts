@@ -1,6 +1,7 @@
 import type { LevelData } from './Level';
 
 export const port: LevelData = {
+  theme: 'suburb',
   name: 'Ничего декларировать', width: 2400, groundY: 312, exitX: 2300,
   bossIntroX: 1710, bossId: 'miller', introScene: 'food-threat', exitScene: 'delivered',
   platforms: [{ x: 350, y: 236, width: 145 }, { x: 730, y: 202, width: 180 }, { x: 1080, y: 248, width: 130 }, { x: 1590, y: 228, width: 150 }, { x: 1960, y: 190, width: 180 }],

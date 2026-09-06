@@ -138,6 +138,6 @@ test('enemy attack phases select complete poses without rotating or resizing the
     }
     return { frames, scales };
   });
-  expect(result.frames).toEqual([28, 32, 33, 34, 35]);
+  expect(result.frames).toEqual([3, 7, 8, 9, 9]);
   expect(result.scales).toEqual(Array(5).fill([1.15, 1.15, 0]));
 });

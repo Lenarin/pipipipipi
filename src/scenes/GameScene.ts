@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { campaignProjectileOrigin, volleyAngle } from '../game/campaignArt';
 import { bridge, type GameCommand, type GameSnapshot } from '../game/bridge';
 import { decorateLevel, drawPlatform } from '../game/art';
 import { CombatAudio } from '../game/CombatAudio';
@@ -198,7 +199,7 @@ export class GameScene extends Phaser.Scene {
     this.enemyPresentations.forEach((presentation) => presentation.destroy());
     this.enemyPresentations.clear();
     // DisplayList.removeAll(true) only detaches and skips callbacks; it does not destroy.
-    // Destroy a stable copy so text canvases, native rain emitters and update entries are released.
+    // Destroy a stable copy so text canvases, native emitters and update entries are released.
     for (const child of [...this.children.getChildren()]) child.destroy();
     decorateLevel(this, index, this.level.width);
     this.platforms = this.physics.add.staticGroup();
@@ -385,12 +386,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   private fireProjectile(enemy: Enemy, spread: number, heavy: boolean, facing: 1 | -1, hitToken: ProjectileAttackToken, aimTarget?: Readonly<{ x: number; y: number }>): void {
-    const shot = this.physics.add.image(enemy.x, enemy.y - 5, 'projectile');
+    const shotTexture = enemy.bossId === 'miller' || enemy.faction === 'police' || enemy.faction === 'federal' ? 'projectile-round'
+      : enemy.faction === 'street' ? 'projectile-bottle' : 'projectile';
+    const origin = campaignProjectileOrigin(enemy, facing);
+    const shot = this.physics.add.image(origin.x, origin.y, shotTexture).setFlipX(facing < 0);
     this.projectiles.add(shot);
     shot.setData('damage', enemy.attackProfile?.damage ?? (heavy ? 18 : 12));
     shot.setData('attackHitToken', hitToken);
     if (aimTarget) {
-      const angle = Math.atan2(aimTarget.y - (enemy.y - 5), aimTarget.x - enemy.x) + spread * 0.11;
+      const angle = volleyAngle(origin, aimTarget, facing, spread);
       shot.setVelocity(Math.cos(angle) * 260, Math.sin(angle) * 260);
     } else shot.setVelocity(facing * (heavy ? 245 : 230), spread * 75);
     shot.setDepth(6);
@@ -690,11 +694,11 @@ export class GameScene extends Phaser.Scene {
       return;
     }
     if (this.campaign.nextScene === this.level.introScene && Math.abs(this.player.x - this.level.bossIntroX) < 65) {
-      this.interactPrompt.setText(this.routeEnemiesRemain() ? 'Сначала расчистите маршрут' : 'E — поговорить').setPosition(this.level.bossIntroX, 214).setVisible(true);
+      this.interactPrompt.setText(this.routeEnemiesRemain() ? 'Сначала расчистите маршрут' : 'E — поговорить').setPosition(this.level.bossIntroX, 160).setVisible(true);
       return;
     }
     if (Math.abs(this.player.x - this.level.exitX) < 65) {
-      this.interactPrompt.setText(this.enemies.countActive(true) ? 'Путь закрыт' : this.rules.stage === 2 ? 'E — постучать' : 'E — пройти дальше').setPosition(this.level.exitX, 214).setVisible(true);
+      this.interactPrompt.setText(this.enemies.countActive(true) ? 'Путь закрыт' : this.rules.stage === 2 ? 'E — постучать' : 'E — пройти дальше').setPosition(this.level.exitX, 160).setVisible(true);
       return;
     }
     this.interactPrompt.setVisible(false);

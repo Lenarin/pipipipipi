@@ -155,7 +155,11 @@ test('all three stage gates, boss combat, victory and replay work together', asy
         await page.keyboard.press('KeyJ', { delay: 40 });
         await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').attack.state.phase), { intervals: [20] }).toBe('idle');
       }
-      expect(alive, `${id} should be defeated by melee`).toBe(false);
+      const diagnostic = alive ? await page.evaluate((id: string) => {
+        const s = (window as any).__GAME__.scene.getScene('Game'), e = s.enemies.getChildren().find((e: any) => e.id === id);
+        return { enemy: e && { x: e.x, y: e.y, hp: e.hp, bodyX: e.body.x, bodyY: e.body.y }, player: { x: s.player.x, y: s.player.y, bodyX: s.player.body.x, bodyY: s.player.body.y }, attack: s.attack.state };
+      }, id) : undefined;
+      expect(alive, `${id} should be defeated by melee: ${JSON.stringify(diagnostic)}`).toBe(false);
     }
     const ids = await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').enemies.getChildren().filter((e: any) => e.kind !== 'boss').map((e: any) => e.id));
     for (const id of ids) await defeat(id);

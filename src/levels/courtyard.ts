@@ -1,6 +1,7 @@
 import type { LevelData } from './Level';
 
 export const courtyard: LevelData = {
+  theme: 'batumi',
   name: 'Последний с сыром', width: 1900, groundY: 312, exitX: 1815,
   bossIntroX: 1710, bossId: 'mark', introScene: 'last-khachapuri', exitScene: 'wanted',
   platforms: [

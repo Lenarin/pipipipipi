@@ -17,9 +17,9 @@ test('defeat removes gameplay body and awards once while a full-body collapse co
   });
   expect(initial.count).toBe(initial.previousCount - 1); expect(initial.kills).toBe(1);
   expect(initial.remains).toBe(true); expect(initial.body).toBe(false);
-  expect(initial.frame).toBe(52); expect(initial.animation).toBe('walker-death');
+  expect(initial.frame).toBe(10); expect(initial.animation).toBe('enemy-street-walker-death');
   await page.waitForTimeout(240);
-  expect(await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').children.getByName('enemy-remains')?.frame.name)).toBeGreaterThan(52);
+  expect(await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').children.getByName('enemy-remains')?.frame.name)).toBe(11);
   await expect.poll(() => page.evaluate(() => Boolean((window as any).__GAME__.scene.getScene('Game').children.getByName('enemy-remains')))).toBe(false);
 });
 
@@ -52,7 +52,7 @@ test('an airborne defeated enemy settles visually on the surface below, not in m
   await page.waitForTimeout(230);
   const settled = await page.evaluate(() => {
     const r = (window as any).__GAME__.scene.getScene('Game').children.getByName('enemy-remains');
-    return { feet: r.y + (112 - r.originY * 128) * r.scaleY, body: Boolean(r.body) };
+    return { feet: r.y + (144 - r.originY * 160) * r.scaleY, body: Boolean(r.body) };
   });
   expect(settled.feet).toBeCloseTo(initial.ground, 0);
   expect(settled.body).toBe(false);

@@ -2,11 +2,15 @@ import Phaser from 'phaser';
 import { createTextures } from '../game/art';
 import { importAnimationSheets } from '../game/spriteAtlas';
 import { showLoadError } from '../ui';
+import { loadCampaignArt } from '../game/campaignArt';
+import { importPortraits } from '../game/portraitAtlas';
+import { importCampaignSprites } from '../game/campaignSpriteAtlas';
 export class BootScene extends Phaser.Scene {
   private failed = false;
   constructor() { super('Boot'); }
   preload() {
     const base = import.meta.env.BASE_URL;
+    loadCampaignArt(this, base);
     this.load.image('city', `${base}assets/batumi.png`);
     this.load.image('hero-locomotion-source', `${base}assets/hero-locomotion-v7-source.png`);
     this.load.image('hero-combat-source', `${base}assets/hero-combat-v4-source.png`);
@@ -34,7 +38,7 @@ export class BootScene extends Phaser.Scene {
   }
   create() {
     if (this.failed) return;
-    try { createTextures(this); importAnimationSheets(this); this.scene.start('Game'); }
+    try { createTextures(this); importAnimationSheets(this); importPortraits(this); importCampaignSprites(this); this.scene.start('Game'); }
     catch (error) { showLoadError(`Не удалось подготовить персонажа: ${error instanceof Error ? error.message : 'ошибка изображения'}`); }
   }
 }

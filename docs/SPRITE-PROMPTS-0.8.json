@@ -1,0 +1,344 @@
+{
+  "version": "0.8",
+  "generator": "Built-in image_gen",
+  "status": "Final selected source assets. Runtime registration and visual QA are recorded separately in verification docs.",
+  "notes": [
+    "No runtime generation or external image URLs.",
+    "Source images require measured registration and nearest-neighbor packing; nominal generated grids are not reliable.",
+    "Existing v0.7 hero sheets remain unchanged.",
+    "Mark portrait simplified after user requested more cartoon styling. Both Mark combat and head derived from supplied photo."
+  ],
+  "assets": [
+    {
+      "key": "portrait-larik",
+      "dest": "portrait-larik-v8-source.png",
+      "prompt": "Use case: stylized-concept. Asset type: production pixel-art dialogue portrait animation sheet for a bright comic action platformer. Image 1 is the identity/style reference for Larik, not an edit target. Draw the same adult man, shaggy swept dark brown hair, black rectangular glasses, short full beard, black sweatshirt, ordinary grounded proportions, recognizable face. Twelve bust portraits in EXACTLY four columns by three rows, row-major. Identical head/shoulder scale, position and three-quarter gaze toward screen right in all cells. Row 1 neutral dry expression; row 2 warm faint smile; row 3 intense annoyed brows. In EACH row the four columns are: mouth closed eyes open; speaking mouth slightly open; mouth closed eyes closed blinking; speaking mouth wider open. Hair, glasses, shoulders do NOT shift between mouth variants. Crisp hand-placed-looking pixel clusters, warm daylight colors, dark thin outline, expressive readable face, no smooth painting. Each bust fully separated with generous transparent gutters and equal baseline. GENUINELY TRANSPARENT background, preserve alpha, no checkerboard, no text, no numbers, no panels, no extra figures, no watermark. Landscape sheet; no weapons in these bust portraits.",
+      "refs": [
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/hero-locomotion-v7-source.png"
+      ],
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-121b4990-d822-443b-931f-6887e6a76f62.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/portrait-larik-v8-source.png",
+      "runtimeKey": "portrait-larik",
+      "path": "public/assets/portrait-larik-v8-source.png",
+      "inspection": "1536x1024; true alpha; 12 heads in 4x3 nominal layout. Neutral/warm/intense rows. Measure margins."
+    },
+    {
+      "key": "scene-batumi",
+      "dest": "scene-batumi-v8.png",
+      "prompt": "Use case: stylized-concept. Asset type: production side-view pixel-art background panorama for a browser action platformer at 640x360 logical scale. Wide 16:9 or wider composition, straight side-on camera, bright sunny daylight, crisp pixel clusters, readable shapes, warm comic mood, not noir, no rain, no fog, no vignette. Upper half open blue sky with sparse clouds. Background architecture sits in the middle distance; lower quarter quiet pale paving, no player or enemies, no UI, no text or logos, no fake platforms. Native foreground platforms and labels will be layered by the game, so keep contrast moderate and playable lower space uncluttered. Scene: sunny Georgian Batumi old-town street, cream plaster, terracotta roofs, turquoise wooden balconies and wrought iron railings, open arcades, striped bakery awning, palms and distant coastal skyline. Charming worn lived-in city, bright and tactile, not a fantasy castle.",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-95d70428-ccc5-4669-8972-b7a516fa6d94.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/scene-batumi-v8.png",
+      "runtimeKey": "scene-batumi",
+      "path": "public/assets/scene-batumi-v8.png",
+      "inspection": "Inspect at logical gameplay resolution."
+    },
+    {
+      "key": "scene-airport",
+      "dest": "scene-airport-v8.png",
+      "prompt": "Use case: stylized-concept. Asset type: production side-view pixel-art background panorama for a browser action platformer at 640x360 logical scale. Wide 16:9 or wider composition, straight side-on camera, bright sunny daylight, crisp pixel clusters, readable shapes, warm comic mood, not noir, no rain, no fog, no vignette. Upper half open blue sky with sparse clouds. Background architecture sits in the middle distance; lower quarter quiet pale paving, no player or enemies, no UI, no text or logos, no fake platforms. Native foreground platforms and labels will be layered by the game, so keep contrast moderate and playable lower space uncluttered. Scene: contemporary small coastal airport terminal and approach road, pale concrete, blue glass, yellow traffic markings, distant passenger plane tail and control tower, orderly baggage carts, restrained blue patrol lights. Clearly an airport, no readable logos or text. Architectural background, not a perspective racing road.",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-221cee29-d390-4116-9c3b-343850c46c26.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/scene-airport-v8.png",
+      "runtimeKey": "scene-airport",
+      "path": "public/assets/scene-airport-v8.png",
+      "inspection": "Inspect at logical gameplay resolution."
+    },
+    {
+      "key": "scene-suburb",
+      "dest": "scene-suburb-v8.png",
+      "prompt": "Use case: stylized-concept. Asset type: production side-view pixel-art background panorama for a browser action platformer at 640x360 logical scale. Wide 16:9 or wider composition, straight side-on camera, bright sunny daylight, crisp pixel clusters, readable shapes, warm comic mood, not noir, no rain, no fog, no vignette. Upper half open blue sky with sparse clouds. Background architecture sits in the middle distance; lower quarter quiet pale paving, no player or enemies, no UI, no text or logos, no fake platforms. Native foreground platforms and labels will be layered by the game, so keep contrast moderate and playable lower space uncluttered. Scene: gently absurd sunny American suburb, cream and pastel clapboard houses, porches, picket fences, mailboxes, green lawns and trees. Several dark unmarked federal SUVs parked discreetly in the middle distance, no visible people or weapons. Airplane wreck is NOT in this panorama; it will be a separate foreground story prop.",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-97aec24b-d728-4bdc-a82b-192ff581a77f.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/scene-suburb-v8.png",
+      "runtimeKey": "scene-suburb",
+      "path": "public/assets/scene-suburb-v8.png",
+      "inspection": "Inspect at logical gameplay resolution."
+    },
+    {
+      "key": "boss-chief",
+      "dest": "boss-chief-v8-source.png",
+      "prompt": "Use case: stylized-concept. Asset type: production animation sprite sheet for a sunny comic pixel-art side-view action platformer. Image 1 is ONLY reference for crisp pixel-cluster drawing style and ordinary adult human proportions; DO NOT draw its hero, pipe, glasses or clothing on the new character. Exactly 24 separate complete-body sprites in FOUR columns and SIX rows, strictly row-major, no labels or grid lines. One identical adult character throughout, consistent anatomy, clothing and weapon size; every pose faces screen RIGHT including attacks and collapse. Keep constant standing anatomical scale, do not enlarge crouches or corpses. Entire feet, head and equipment visible with generous flat MAGENTA (#ff00ff) gutters; no contact with neighbouring cells. Background uniformly magenta for exact game extraction, no shadow plate, no checkerboard, no text, no extra figures, no blood. Warm daylight pixel-art colors and readable silhouettes, thin dark outline, no gloomy zombie look. Portrait sheet about 1024x1536. Row-major pose sequence: 0 idle; 1 walking left-foot-forward; 2 walking right-foot-forward; 3 primary anticipation 1; 4 primary anticipation 2; 5 primary anticipation 3; 6 primary anticipation 4 maximum loaded pose; 7 primary contact 1; 8 primary contact 2; 9 primary follow-through recovery 1; 10 primary recovery 2 almost standing; 11 recoil from a hit. 12 secondary anticipation 1; 13 secondary anticipation 2; 14 secondary anticipation 3; 15 secondary anticipation 4 maximum loaded; 16 secondary contact 1; 17 secondary contact 2; 18 secondary recovery 1; 19 secondary recovery 2. 20 defeated stumbling; 21 defeated kneeling; 22 falling sideways; 23 lying flat on ground, no wounds. Four distinct anticipation silhouettes for each attack, not duplicate idle poses. Character: stocky adult airport police chief with heavy moustache, blue peaked police cap, neat blue uniform and navy trousers, black boots, ochre badge, a rectangular navy riot SHIELD carried in his front forearm and short black BATON in other hand. Primary attack is a baton strike to the RIGHT, visibly drawing baton behind shoulder through four anticipation poses; lower the shield enough for contact to read. Secondary attack is a shield charge to the RIGHT: crouch, plant feet, lean and bring shield forward before a committed forward running shove; after charge stop and lower shield, visibly tired. Idle shields the front; recovery exposes torso. Shield is always a physical drawn prop. Same cap, moustache and shield proportions in every pose. No anchor or medieval equipment.",
+      "refs": [
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/hero-locomotion-v7-source.png"
+      ],
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-05512e0a-789b-4a8a-baae-c41460a6f278.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/boss-chief-v8-source.png",
+      "runtimeKey": "boss-chief",
+      "path": "public/assets/boss-chief-v8-source.png",
+      "inspection": "1024x1536,24 poses,4x6. Actual artwork: idle0 walk1,2; baton prep3-6,7 still raised,8 contact down/right,9 followthrough,10 idle,11 hurt; charge prep12-15 contact16,17 recovery18,19 collapse20-23. Use actual order, not merely nominal prompt."
+    },
+    {
+      "key": "boss-miller",
+      "dest": "boss-miller-v8-source.png",
+      "prompt": "Use case: stylized-concept. Asset type: production animation sprite sheet for a sunny comic pixel-art side-view action platformer. Image 1 is ONLY reference for crisp pixel-cluster drawing style and ordinary adult human proportions; DO NOT draw its hero, pipe, glasses or clothing on the new character. Exactly 24 separate complete-body sprites in FOUR columns and SIX rows, strictly row-major, no labels or grid lines. One identical adult character throughout, consistent anatomy, clothing and weapon size; every pose faces screen RIGHT including attacks and collapse. Keep constant standing anatomical scale, do not enlarge crouches or corpses. Entire feet, head and equipment visible with generous flat MAGENTA (#ff00ff) gutters; no contact with neighbouring cells. Background uniformly magenta for exact game extraction, no shadow plate, no checkerboard, no text, no extra figures, no blood. Warm daylight pixel-art colors and readable silhouettes, thin dark outline, no gloomy zombie look. Portrait sheet about 1024x1536. Row-major pose sequence: 0 idle; 1 walking left-foot-forward; 2 walking right-foot-forward; 3 primary anticipation 1; 4 primary anticipation 2; 5 primary anticipation 3; 6 primary anticipation 4 maximum loaded pose; 7 primary contact 1; 8 primary contact 2; 9 primary follow-through recovery 1; 10 primary recovery 2 almost standing; 11 recoil from a hit. 12 secondary anticipation 1; 13 secondary anticipation 2; 14 secondary anticipation 3; 15 secondary anticipation 4 maximum loaded; 16 secondary contact 1; 17 secondary contact 2; 18 secondary recovery 1; 19 secondary recovery 2. 20 defeated stumbling; 21 defeated kneeling; 22 falling sideways; 23 lying flat on ground, no wounds. Four distinct anticipation silhouettes for each attack, not duplicate idle poses. Character: tall broad-shouldered adult special agent Miller, short dark flattop hair, black sunglasses, navy business suit and loosened dark tie over pale blue shirt, earpiece, brown shoes; human bureaucratic comic villain, not monster. Primary attack: slowly raise a compact service pistol and aim two-handed to screen RIGHT through four distinct preparation poses; two firing poses with small drawn muzzle flash attached at barrel, then visibly lower the pistol and reload. Secondary action: raise radio to mouth calling reinforcements in preparation, then quick sidestep/reposition to the RIGHT with pistol lowered, followed by rebalanced stance. Do not turn away from RIGHT. No rifle, anchor, shield or superhero costume.",
+      "refs": [
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/hero-locomotion-v7-source.png"
+      ],
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-7ab676d5-2045-4213-9045-f01b8f3959e9.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/boss-miller-v8-source.png",
+      "runtimeKey": "boss-miller",
+      "path": "public/assets/boss-miller-v8-source.png",
+      "inspection": "1024x1536,24 poses,4x6. Actual artwork: idle0 walk1,2;3 hands at jacket,4 draw,5 raise,6-7 aim;8-9 fire;10-11 reload;12 hurt;13-14 radio;15 idle;16 crouch,17-18 step,19 crouch;20-23 collapse. Use these actual poses for volley/reposition; prompt mapping was not followed exactly."
+    },
+    {
+      "key": "portrait-nastya",
+      "dest": "portrait-nastya-v8-source.png",
+      "prompt": "Use case: stylized-concept. Asset type: production talking-head portrait sprite sheet for a bright comic pixel-art game. Image 1 is ONLY a drawing-style reference; create the NEW adult character described below, not that man. Exactly TWELVE bust portraits, FOUR columns by THREE rows, strictly row-major, consistent head/shoulder scale, root position and three-quarter gaze toward screen RIGHT. Each row is one expression: row 1 neutral; row 2 warm/amused; row 3 intense/annoyed. In EVERY row columns are: 1 mouth closed eyes open; 2 talking mouth slightly open; 3 mouth closed eyes closed (blink); 4 talking mouth wider open. Change only eyes/mouth between variants, no bouncing head or changing clothes. Full hair and shoulders visible, generous transparent gutters and identical baseline. Crisp visible pixel clusters, thin dark outline, warm daylight and vivid restrained colors. Genuine TRANSPARENT alpha background, NO checkerboard, no painted backdrop, no panels, no numbers, no text, no watermarks. Landscape 4:3-ish sheet. Character: Nastya, an original friendly adult woman in her late twenties, auburn hair in a loose ponytail with a few loose strands, expressive hazel eyes, small freckles, simple yellow T-shirt and tiny teal stud earrings. She is Larik's down-to-earth friend living in America. Ordinary human face, casual relaxed clothing, not a pin-up or anime teenager.",
+      "refs": [
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/portrait-larik-v8-source.png"
+      ],
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-3898ac44-224b-4c85-985d-e6bdd18e7e1a.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/portrait-nastya-v8-source.png",
+      "runtimeKey": "portrait-nastya",
+      "path": "public/assets/portrait-nastya-v8-source.png",
+      "inspection": "1448x1086; true alpha; 12 heads in 4x3. Original adult design."
+    },
+    {
+      "key": "portrait-baker",
+      "dest": "portrait-baker-v8-source.png",
+      "prompt": "Use case: stylized-concept. Asset type: production talking-head portrait sprite sheet for a bright comic pixel-art game. Image 1 is ONLY a drawing-style reference; create the NEW adult character described below, not that man. Exactly TWELVE bust portraits, FOUR columns by THREE rows, strictly row-major, consistent head/shoulder scale, root position and three-quarter gaze toward screen RIGHT. Each row is one expression: row 1 neutral; row 2 warm/amused; row 3 intense/annoyed. In EVERY row columns are: 1 mouth closed eyes open; 2 talking mouth slightly open; 3 mouth closed eyes closed (blink); 4 talking mouth wider open. Change only eyes/mouth between variants, no bouncing head or changing clothes. Full hair and shoulders visible, generous transparent gutters and identical baseline. Crisp visible pixel clusters, thin dark outline, warm daylight and vivid restrained colors. Genuine TRANSPARENT alpha background, NO checkerboard, no painted backdrop, no panels, no numbers, no text, no watermarks. Landscape 4:3-ish sheet. Character: A genial middle-aged bakery owner, round face, short salt-and-pepper moustache, white baker's cap, rolled-sleeve cream shirt and teal apron lightly dusted with flour. Plain kind human face, broad eyebrows, no caricature of ethnicity, no weapons.",
+      "refs": [
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/portrait-larik-v8-source.png"
+      ],
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-1c59595b-ebce-4c3b-a6b6-8d50d07129f3.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/portrait-baker-v8-source.png",
+      "runtimeKey": "portrait-baker",
+      "path": "public/assets/portrait-baker-v8-source.png",
+      "inspection": "1536x1024; true alpha; 12 heads in 4x3."
+    },
+    {
+      "key": "boss-mark-photo",
+      "runtimeKey": "boss-mark",
+      "dest": "boss-mark-v8-source.png",
+      "prompt": "Use case: stylized-concept. Asset type: production animation sprite sheet for a sunny comic pixel-art side-view action platformer. Image 1 is the user's FACE IDENTITY reference; Image 2 is ONLY the pixel drawing-style reference. Do not copy Image2 hero or pipe. Exactly 24 separate complete-body sprites in FOUR columns and SIX rows, strictly row-major, no labels or grid lines. One identical adult character throughout, consistent anatomy, clothing and weapon size; every pose faces screen RIGHT including attacks and collapse. Keep constant standing anatomical scale, do not enlarge crouches or corpses. Entire feet, head and equipment visible with generous flat MAGENTA (#ff00ff) gutters; no contact with neighbouring cells. Background uniformly magenta for exact game extraction, no shadow plate, no checkerboard, no text, no extra figures, no blood. Warm daylight pixel-art colors and readable silhouettes, thin dark outline, no gloomy zombie look. Portrait sheet about 1024x1536. Row-major pose sequence: 0 idle; 1 walking left-foot-forward; 2 walking right-foot-forward; 3 primary anticipation 1; 4 primary anticipation 2; 5 primary anticipation 3; 6 primary anticipation 4 maximum loaded pose; 7 primary contact 1; 8 primary contact 2; 9 primary follow-through recovery 1; 10 primary recovery 2 almost standing; 11 recoil from a hit. 12 secondary anticipation 1; 13 secondary anticipation 2; 14 secondary anticipation 3; 15 secondary anticipation 4 maximum loaded; 16 secondary contact 1; 17 secondary contact 2; 18 secondary recovery 1; 19 secondary recovery 2. 20 defeated stumbling; 21 defeated kneeling; 22 falling sideways; 23 lying flat on ground, no wounds. Four distinct anticipation silhouettes for each attack, not duplicate idle poses. Mark MUST look like the adult man in reference Image 1: tousled light-brown hair, broad youthful face, slightly narrowed eyes, rounded cheeks, broad nose, characteristic closed-mouth self-satisfied asymmetric smile, small faint chin goatee/stubble. Preserve his face identity instead of making a generic blond rich man. Black T-shirt from the photo under an open salmon-pink blazer, small gold watch where visible. No glasses, no blonde slick hairstyle, no full beard. Full-body sprite of Mark as an ordinary proportioned adult in salmon jacket, black tee, navy slim trousers and white sneakers, with a CLOSED turquoise umbrella held as a comic dueling prop. Keep the photo-derived face in every pose. Primary attack: pull closed umbrella behind torso, visibly coil over FOUR frames, then lunge and thrust horizontally to RIGHT, and recover with planted feet. Secondary attack: lift closed umbrella above shoulder through FOUR preparation poses, then overhead strike down and forward to RIGHT, then offended tired recovery. Never open umbrella. All24 poses follow exact sequence above.",
+      "refs": [
+        "C:/Users/Vladi/AppData/Local/Temp/orca-paste-1788711104961-e06596db-a918-4db8-8553-8db07936fa2c.png",
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/hero-locomotion-v7-source.png"
+      ],
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-d6c5e88d-53be-4e54-8503-b171146012f8.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/boss-mark-v8-source.png",
+      "path": "public/assets/boss-mark-v8-source.png",
+      "inspection": "1024x1536,24 poses,4x6. User photo reference. Idle0 walk1,2; lunge prep3-6 contact7,8 recovery9,10 hurt11; heavy prep12-15 contact16,17 recovery18,19 collapse20-23. Verify pixels and roots."
+    },
+    {
+      "key": "portrait-chief-keyed",
+      "runtimeKey": "portrait-chief",
+      "dest": "portrait-chief-v8-keyed-source.png",
+      "prompt": "Use case: precise-object-edit. Image1 is the edit target, a 12-frame pixel-art portrait sheet. Change ONLY the grey-white checkerboard background to one perfectly uniform flat saturated MAGENTA #ff00ff chroma-key background. This is an OPAQUE magenta game source sheet, do not draw checkerboard or simulate transparency. Preserve EVERY portrait pixel, all12 portraits, facial expressions, mouths, hair, clothes, black outlines,4column3row positions, size and framing unchanged. Keep magenta in all gutters and outside silhouettes, no holes in faces or clothes. No shadows, gradients, labels or new objects.",
+      "refs": [
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/portrait-chief-v8-source.png"
+      ],
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-47446673-fcee-4b0d-b25b-e62bcf7b0070.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/portrait-chief-v8-keyed-source.png",
+      "path": "public/assets/portrait-chief-v8-keyed-source.png",
+      "inspection": "1536x1024; magenta keyed source replaces baked-checkerboard draft. 12 heads in 4x3."
+    },
+    {
+      "key": "portrait-miller-keyed",
+      "runtimeKey": "portrait-miller",
+      "dest": "portrait-miller-v8-keyed-source.png",
+      "prompt": "Use case: precise-object-edit. Image1 is the edit target, a 12-frame pixel-art portrait sheet. Change ONLY the grey-white checkerboard background to one perfectly uniform flat saturated MAGENTA #ff00ff chroma-key background. This is an OPAQUE magenta game source sheet, do not draw checkerboard or simulate transparency. Preserve EVERY portrait pixel, all12 portraits, facial expressions, mouths, hair, clothes, black outlines,4column3row positions, size and framing unchanged. Keep magenta in all gutters and outside silhouettes, no holes in faces or clothes. No shadows, gradients, labels or new objects.",
+      "refs": [
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/portrait-miller-v8-source.png"
+      ],
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-7b435722-9289-4a4a-9e9d-33d1ccd25a35.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/portrait-miller-v8-keyed-source.png",
+      "path": "public/assets/portrait-miller-v8-keyed-source.png",
+      "inspection": "1536x1024; magenta keyed source replaces baked-checkerboard draft. 12 heads in 4x3."
+    },
+    {
+      "key": "story-montage",
+      "dest": "story-v8-source.png",
+      "refs": [
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/portrait-larik-v8-source.png",
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/portrait-nastya-v8-source.png"
+      ],
+      "prompt": "Use case: illustration-story. Asset type: SIX original pixel-art cutscene background panels for a bright absurd comic action game. Image1 is Larik's character identity reference (adult man, tousled dark hair, rectangular glasses, short beard, black sweatshirt). Image2 is Nastya's character identity reference (adult woman, auburn ponytail, yellow T-shirt). Exactly SIX equally-sized LANDSCAPE panels arranged TWO columns by THREE rows, same thin solid MAGENTA gutters and outer border, perfectly regular panel rectangles for slicing. No panel numbers, speech bubbles or captions; all words added by game later. Crisp cartoon pixel-art clusters, warm daylight, simple readable staging matching characters, not photorealistic.\nPanel1 top left: a light police notice board with a pixel illustration of Larik's face and a paper food bag circled in red, enough blank paper for a wanted label to be added later. Do not invent letters or show raw photographic face.\nPanel2 top right: a small white passenger plane in side view flying right through a sunny blue sky, no logos.\nPanel3 middle left: the same plane descending nose-down above sunny American suburban roofs and green field, comic imminent rough landing, no people falling, no violence.\nPanel4 middle right: plane fuselage and broken wing resting on grass beside a suburban road, a little smoke from engine, no victims, NO human bodies, foreground clear.\nPanel5 bottom left: close-up of one beautiful Adjarian boat-shaped khachapuri with melted cheese, egg yolk and butter on a plain paper bag, warm appetizing colors.\nPanel6 bottom right: Larik and Nastya seated at a small kitchen table sharing that khachapuri, smiling quietly, a window behind them shows several dark official SUVs outside in daylight. Both adults fully safe; no guns in room, no menacing gesture.\nNo medieval/noir colors, no rain, no horror, no UI. Flat magenta only in narrow external gutters; full painted scenes inside panels.",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-c1b301c5-4cbc-416b-ad89-897731c317c8.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/story-v8-source.png",
+      "runtimeKey": "story-montage",
+      "path": "public/assets/story-v8-source.png",
+      "inspection": "1536x1024, 6 landscape panels 2 columns x3 rows, magenta border/gutters. Wanted poster, flight, descent, wreck, khachapuri, eating finale. Measure rects. No raw user photo in runtime."
+    },
+    {
+      "key": "portrait-mark-keyed",
+      "runtimeKey": "portrait-mark",
+      "dest": "portrait-mark-v8-keyed-source.png",
+      "refs": [
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/portrait-mark-v8-source.png"
+      ],
+      "prompt": "Use case: precise-object-edit. Edit target is attached twelve cartoon pixel portrait atlas. Replace ONLY ALL checkerboard background pixels and empty gutters by flat solid opaque magenta #ff00ff. Preserve all twelve illustrated portraits EXACTLY including cartoon simple face, thick eyebrow, hair, smirk, colors, positions, image dimensions and pixel-art edges. Do not change faces or style, do not add realism, do not draw checkerboard or shadows, no transparency.",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-ace67504-0994-4b6b-a3c2-421ed783cb5f.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/portrait-mark-v8-keyed-source.png",
+      "path": "public/assets/portrait-mark-v8-keyed-source.png",
+      "inspection": "1536x1024, magenta keyed; cartoon Mark selected after user feedback. Source columns neutral/talk/blink/wide-talk; reorder for runtime [0,1,3,2]."
+    },
+    {
+      "key": "enemy-street-walker",
+      "runtimeKey": "enemy-street-walker",
+      "dest": "enemy-street-walker-v8-source.png",
+      "refs": [
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-street-v8-source.png"
+      ],
+      "prompt": "Use case: stylized-concept. Production 2D side-scrolling game sprite atlas. Chunky expressive cartoon pixel art, limited warm palette, clean dark pixel outline, nearest-neighbor appearance, simplified face, no realistic shading or anatomy rendering. Landscape canvas 1536x1024. Flat OPAQUE pure magenta #ff00ff everywhere behind all sprites, no transparency, no checkerboard. Input image is character/style reference only, not layout reference. Subject: Stocky messy-haired stubbly street brawler, olive patched jacket, rust-red shirt, dark trousers, holding short brown wooden club. Exactly TWELVE separate full-body poses, FOUR columns by THREE rows, row-major. Consistent right-facing side-view, head/body scale, feet baselines. Row 1: idle, walk left leg forward, walk right leg forward, attack preparation stage 1. Row 2: preparation stage 2, preparation stage 3, preparation stage 4 fully wound up, contact with weapon/paw fully extended RIGHT. Row 3: spent follow-through, recovery lowering weapon, hurt recoil, defeated collapsed on floor. Every pose and its weapon completely inside its own cell, generous magenta empty gutters. No titles, letters, labels, extra sprites, effects or shadows on ground. Preparation clearly pulls elbow/weapon back with torso coiling, contact fully extends short weapon or bare fist horizontally RIGHT, spent follow-through right, recovery lowers arm. No detached effects.",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-029f99ae-bc24-4238-a531-6df4a0ce0fc8.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-street-walker-v8-source.png",
+      "path": "public/assets/enemy-street-walker-v8-source.png",
+      "inspection": "12 poses, 4 columns x3 rows; all right-facing. Actual inspected order: idle0,walk1/2,windup3/4/5/6,contact7,followthrough8,recovery9,hurt10,collapse11. Melee sprites show weapon/fist; ranged sprites actual projectile is native and should not include detached bottle from contact source; dogs crouch and leap."
+    },
+    {
+      "key": "enemy-street-spitter",
+      "runtimeKey": "enemy-street-spitter",
+      "dest": "enemy-street-spitter-v8-source.png",
+      "refs": [
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-street-v8-source.png"
+      ],
+      "prompt": "Use case: stylized-concept. Production 2D side-scrolling game sprite atlas. Chunky expressive cartoon pixel art, limited warm palette, clean dark pixel outline, nearest-neighbor appearance, simplified face, no realistic shading or anatomy rendering. Landscape canvas 1536x1024. Flat OPAQUE pure magenta #ff00ff everywhere behind all sprites, no transparency, no checkerboard. Input image is character/style reference only, not layout reference. Subject: Thin unshaven street bottle thrower, yellow beanie, rust-red jacket, blue trousers, green bottle for overhand throwing. Exactly TWELVE separate full-body poses, FOUR columns by THREE rows, row-major. Consistent right-facing side-view, head/body scale, feet baselines. Row 1: idle, walk left leg forward, walk right leg forward, attack preparation stage 1. Row 2: preparation stage 2, preparation stage 3, preparation stage 4 fully wound up, contact with weapon/paw fully extended RIGHT. Row 3: spent follow-through, recovery lowering weapon, hurt recoil, defeated collapsed on floor. Every pose and its weapon completely inside its own cell, generous magenta empty gutters. No titles, letters, labels, extra sprites, effects or shadows on ground. Prepare by raising bottle behind the head, contact is overhand throw to RIGHT, recovery empty hand.",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-a4ce337e-2703-4f12-8ade-cda9b0ef4e78.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-street-spitter-v8-source.png",
+      "path": "public/assets/enemy-street-spitter-v8-source.png",
+      "inspection": "12 poses, 4 columns x3 rows; all right-facing. Actual inspected order: idle0,walk1/2,windup3/4/5/6,contact7,followthrough8,recovery9,hurt10,collapse11. Melee sprites show weapon/fist; ranged sprites actual projectile is native and should not include detached bottle from contact source; dogs crouch and leap."
+    },
+    {
+      "key": "enemy-street-hound",
+      "runtimeKey": "enemy-street-hound",
+      "dest": "enemy-street-hound-v8-source.png",
+      "refs": [
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-street-v8-source.png"
+      ],
+      "prompt": "Use case: stylized-concept. Production 2D side-scrolling game sprite atlas. Chunky expressive cartoon pixel art, limited warm palette, clean dark pixel outline, nearest-neighbor appearance, simplified face, no realistic shading or anatomy rendering. Landscape canvas 1536x1024. Flat OPAQUE pure magenta #ff00ff everywhere behind all sprites, no transparency, no checkerboard. Input image is character/style reference only, not layout reference. Subject: Scruffy sandy stray dog, dark muzzle, teal collar. Exactly TWELVE separate full-body poses, FOUR columns by THREE rows, row-major. Consistent right-facing side-view, head/body scale, feet baselines. Row 1: idle, walk left leg forward, walk right leg forward, attack preparation stage 1. Row 2: preparation stage 2, preparation stage 3, preparation stage 4 fully wound up, contact with weapon/paw fully extended RIGHT. Row 3: spent follow-through, recovery lowering weapon, hurt recoil, defeated collapsed on floor. Every pose and its weapon completely inside its own cell, generous magenta empty gutters. No titles, letters, labels, extra sprites, effects or shadows on ground. For dog: preparation is increasingly low crouch with hindquarters compressed; contact is a long leap RIGHT, follow-through landing, recovery standing; no weapons; all four legs anatomically clear.",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-a1af378f-7a8e-4641-bc8d-b381e7cf5ebe.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-street-hound-v8-source.png",
+      "path": "public/assets/enemy-street-hound-v8-source.png",
+      "inspection": "12 poses, 4 columns x3 rows; all right-facing. Actual inspected order: idle0,walk1/2,windup3/4/5/6,contact7,followthrough8,recovery9,hurt10,collapse11. Melee sprites show weapon/fist; ranged sprites actual projectile is native and should not include detached bottle from contact source; dogs crouch and leap."
+    },
+    {
+      "key": "enemy-police-walker",
+      "runtimeKey": "enemy-police-walker",
+      "dest": "enemy-police-walker-v8-source.png",
+      "refs": [
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-police-v8-source.png"
+      ],
+      "prompt": "Use case: stylized-concept. Production 2D side-scrolling game sprite atlas. Chunky expressive cartoon pixel art, limited warm palette, clean dark pixel outline, nearest-neighbor appearance, simplified face, no realistic shading or anatomy rendering. Landscape canvas 1536x1024. Flat OPAQUE pure magenta #ff00ff everywhere behind all sprites, no transparency, no checkerboard. Input image is character/style reference only, not layout reference. Subject: Adult policeman, blue cap and short sleeved light blue uniform, navy trousers, short black baton. Exactly TWELVE separate full-body poses, FOUR columns by THREE rows, row-major. Consistent right-facing side-view, head/body scale, feet baselines. Row 1: idle, walk left leg forward, walk right leg forward, attack preparation stage 1. Row 2: preparation stage 2, preparation stage 3, preparation stage 4 fully wound up, contact with weapon/paw fully extended RIGHT. Row 3: spent follow-through, recovery lowering weapon, hurt recoil, defeated collapsed on floor. Every pose and its weapon completely inside its own cell, generous magenta empty gutters. No titles, letters, labels, extra sprites, effects or shadows on ground. Preparation clearly pulls elbow/weapon back with torso coiling, contact fully extends short weapon or bare fist horizontally RIGHT, spent follow-through right, recovery lowers arm. No detached effects.",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-417c7056-ac4e-45b4-abf8-0d36e1b64388.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-police-walker-v8-source.png",
+      "path": "public/assets/enemy-police-walker-v8-source.png",
+      "inspection": "12 poses, 4 columns x3 rows; all right-facing. Actual inspected order: idle0,walk1/2,windup3/4/5/6,contact7,followthrough8,recovery9,hurt10,collapse11. Melee sprites show weapon/fist; ranged sprites actual projectile is native and should not include detached bottle from contact source; dogs crouch and leap."
+    },
+    {
+      "key": "enemy-police-spitter",
+      "runtimeKey": "enemy-police-spitter",
+      "dest": "enemy-police-spitter-v8-source.png",
+      "refs": [
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-police-v8-source.png"
+      ],
+      "prompt": "Use case: stylized-concept. Production 2D side-scrolling game sprite atlas. Chunky expressive cartoon pixel art, limited warm palette, clean dark pixel outline, nearest-neighbor appearance, simplified face, no realistic shading or anatomy rendering. Landscape canvas 1536x1024. Flat OPAQUE pure magenta #ff00ff everywhere behind all sprites, no transparency, no checkerboard. Input image is character/style reference only, not layout reference. Subject: Adult patrol policeman in blue cap and light blue uniform, pistol in both hands, aims and shoots right. Exactly TWELVE separate full-body poses, FOUR columns by THREE rows, row-major. Consistent right-facing side-view, head/body scale, feet baselines. Row 1: idle, walk left leg forward, walk right leg forward, attack preparation stage 1. Row 2: preparation stage 2, preparation stage 3, preparation stage 4 fully wound up, contact with weapon/paw fully extended RIGHT. Row 3: spent follow-through, recovery lowering weapon, hurt recoil, defeated collapsed on floor. Every pose and its weapon completely inside its own cell, generous magenta empty gutters. No titles, letters, labels, extra sprites, effects or shadows on ground. Preparation draws/raises then extends pistol RIGHT; contact is extended aimed pistol, followthrough and recovery reload. No muzzle flash, draw only body and connected gun.",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-a4c51ddb-14bb-401d-869d-fb67ad302843.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-police-spitter-v8-source.png",
+      "path": "public/assets/enemy-police-spitter-v8-source.png",
+      "inspection": "12 poses, 4 columns x3 rows; all right-facing. Actual inspected order: idle0,walk1/2,windup3/4/5/6,contact7,followthrough8,recovery9,hurt10,collapse11. Melee sprites show weapon/fist; ranged sprites actual projectile is native and should not include detached bottle from contact source; dogs crouch and leap."
+    },
+    {
+      "key": "enemy-police-hound",
+      "runtimeKey": "enemy-police-hound",
+      "dest": "enemy-police-hound-v8-source.png",
+      "refs": [
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-police-v8-source.png"
+      ],
+      "prompt": "Use case: stylized-concept. Production 2D side-scrolling game sprite atlas. Chunky expressive cartoon pixel art, limited warm palette, clean dark pixel outline, nearest-neighbor appearance, simplified face, no realistic shading or anatomy rendering. Landscape canvas 1536x1024. Flat OPAQUE pure magenta #ff00ff everywhere behind all sprites, no transparency, no checkerboard. Input image is character/style reference only, not layout reference. Subject: Brown German shepherd police K9 wearing dark blue harness. Exactly TWELVE separate full-body poses, FOUR columns by THREE rows, row-major. Consistent right-facing side-view, head/body scale, feet baselines. Row 1: idle, walk left leg forward, walk right leg forward, attack preparation stage 1. Row 2: preparation stage 2, preparation stage 3, preparation stage 4 fully wound up, contact with weapon/paw fully extended RIGHT. Row 3: spent follow-through, recovery lowering weapon, hurt recoil, defeated collapsed on floor. Every pose and its weapon completely inside its own cell, generous magenta empty gutters. No titles, letters, labels, extra sprites, effects or shadows on ground. For dog: preparation is increasingly low crouch with hindquarters compressed; contact is a long leap RIGHT, follow-through landing, recovery standing; no weapons; all four legs anatomically clear.",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-01e2bd52-300d-42a2-8fc6-00c02bdec207.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-police-hound-v8-source.png",
+      "path": "public/assets/enemy-police-hound-v8-source.png",
+      "inspection": "12 poses, 4 columns x3 rows; all right-facing. Actual inspected order: idle0,walk1/2,windup3/4/5/6,contact7,followthrough8,recovery9,hurt10,collapse11. Melee sprites show weapon/fist; ranged sprites actual projectile is native and should not include detached bottle from contact source; dogs crouch and leap."
+    },
+    {
+      "key": "enemy-federal-walker",
+      "runtimeKey": "enemy-federal-walker",
+      "dest": "enemy-federal-walker-v8-source.png",
+      "refs": [
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-federal-v8-source.png"
+      ],
+      "prompt": "Use case: stylized-concept. Production 2D side-scrolling game sprite atlas. Chunky expressive cartoon pixel art, limited warm palette, clean dark pixel outline, nearest-neighbor appearance, simplified face, no realistic shading or anatomy rendering. Landscape canvas 1536x1024. Flat OPAQUE pure magenta #ff00ff everywhere behind all sprites, no transparency, no checkerboard. Input image is character/style reference only, not layout reference. Subject: Adult federal agent, dark sunglasses, navy jacket over white shirt, dark trousers, bare-fist punches, no gun. Exactly TWELVE separate full-body poses, FOUR columns by THREE rows, row-major. Consistent right-facing side-view, head/body scale, feet baselines. Row 1: idle, walk left leg forward, walk right leg forward, attack preparation stage 1. Row 2: preparation stage 2, preparation stage 3, preparation stage 4 fully wound up, contact with weapon/paw fully extended RIGHT. Row 3: spent follow-through, recovery lowering weapon, hurt recoil, defeated collapsed on floor. Every pose and its weapon completely inside its own cell, generous magenta empty gutters. No titles, letters, labels, extra sprites, effects or shadows on ground. Preparation clearly pulls elbow/weapon back with torso coiling, contact fully extends short weapon or bare fist horizontally RIGHT, spent follow-through right, recovery lowers arm. No detached effects.",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-0a9d7242-fc03-4983-aa1d-a252acef66ca.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-federal-walker-v8-source.png",
+      "path": "public/assets/enemy-federal-walker-v8-source.png",
+      "inspection": "12 poses, 4 columns x3 rows; all right-facing. Actual inspected order: idle0,walk1/2,windup3/4/5/6,contact7,followthrough8,recovery9,hurt10,collapse11. Melee sprites show weapon/fist; ranged sprites actual projectile is native and should not include detached bottle from contact source; dogs crouch and leap."
+    },
+    {
+      "key": "enemy-federal-spitter",
+      "runtimeKey": "enemy-federal-spitter",
+      "dest": "enemy-federal-spitter-v8-source.png",
+      "refs": [
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-federal-v8-source.png"
+      ],
+      "prompt": "Use case: stylized-concept. Production 2D side-scrolling game sprite atlas. Chunky expressive cartoon pixel art, limited warm palette, clean dark pixel outline, nearest-neighbor appearance, simplified face, no realistic shading or anatomy rendering. Landscape canvas 1536x1024. Flat OPAQUE pure magenta #ff00ff everywhere behind all sprites, no transparency, no checkerboard. Input image is character/style reference only, not layout reference. Subject: Adult sunglasses federal agent in navy suit, pale blue shirt and black tie, pistol held in both hands. Exactly TWELVE separate full-body poses, FOUR columns by THREE rows, row-major. Consistent right-facing side-view, head/body scale, feet baselines. Row 1: idle, walk left leg forward, walk right leg forward, attack preparation stage 1. Row 2: preparation stage 2, preparation stage 3, preparation stage 4 fully wound up, contact with weapon/paw fully extended RIGHT. Row 3: spent follow-through, recovery lowering weapon, hurt recoil, defeated collapsed on floor. Every pose and its weapon completely inside its own cell, generous magenta empty gutters. No titles, letters, labels, extra sprites, effects or shadows on ground. Preparation draws/raises then extends pistol RIGHT; contact is extended aimed pistol, followthrough and recovery reload. No muzzle flash, draw only body and connected gun.",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-2e8c40f6-d9b8-4a5d-ba39-45c0c52497b6.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-federal-spitter-v8-source.png",
+      "path": "public/assets/enemy-federal-spitter-v8-source.png",
+      "inspection": "12 poses, 4 columns x3 rows; all right-facing. Actual inspected order: idle0,walk1/2,windup3/4/5/6,contact7,followthrough8,recovery9,hurt10,collapse11. Melee sprites show weapon/fist; ranged sprites actual projectile is native and should not include detached bottle from contact source; dogs crouch and leap."
+    },
+    {
+      "key": "enemy-federal-hound",
+      "runtimeKey": "enemy-federal-hound",
+      "dest": "enemy-federal-hound-v8-source.png",
+      "refs": [
+        "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-federal-v8-source.png"
+      ],
+      "prompt": "Use case: stylized-concept. Production 2D side-scrolling game sprite atlas. Chunky expressive cartoon pixel art, limited warm palette, clean dark pixel outline, nearest-neighbor appearance, simplified face, no realistic shading or anatomy rendering. Landscape canvas 1536x1024. Flat OPAQUE pure magenta #ff00ff everywhere behind all sprites, no transparency, no checkerboard. Input image is character/style reference only, not layout reference. Subject: Black and tan agent K9 dog wearing olive tactical vest. Exactly TWELVE separate full-body poses, FOUR columns by THREE rows, row-major. Consistent right-facing side-view, head/body scale, feet baselines. Row 1: idle, walk left leg forward, walk right leg forward, attack preparation stage 1. Row 2: preparation stage 2, preparation stage 3, preparation stage 4 fully wound up, contact with weapon/paw fully extended RIGHT. Row 3: spent follow-through, recovery lowering weapon, hurt recoil, defeated collapsed on floor. Every pose and its weapon completely inside its own cell, generous magenta empty gutters. No titles, letters, labels, extra sprites, effects or shadows on ground. For dog: preparation is increasingly low crouch with hindquarters compressed; contact is a long leap RIGHT, follow-through landing, recovery standing; no weapons; all four legs anatomically clear.",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-06c1c6d0-c36f-4172-a8fc-e74f30fc292a.png",
+      "savedPath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-federal-hound-v8-source.png",
+      "path": "public/assets/enemy-federal-hound-v8-source.png",
+      "inspection": "12 poses, 4 columns x3 rows; all right-facing. Actual inspected order: idle0,walk1/2,windup3/4/5/6,contact7,followthrough8,recovery9,hurt10,collapse11. Melee sprites show weapon/fist; ranged sprites actual projectile is native and should not include detached bottle from contact source; dogs crouch and leap."
+    }
+  ],
+  "runtimePortraitColumnOrder": [
+    0,
+    1,
+    3,
+    2
+  ],
+  "montageKeys": [
+    "story-v8-wanted",
+    "story-v8-flight",
+    "story-v8-descent",
+    "story-v8-wreck",
+    "story-v8-food",
+    "story-v8-eating"
+  ],
+  "discardedVariants": [
+    {
+      "key": "portrait-chief",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-1168ab6d-0c3f-44dd-b5b9-305853702531.png",
+      "originalWorkspacePath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/portrait-chief-v8-source.png",
+      "reason": "Baked checkerboard background; replaced by selected keyed edit."
+    },
+    {
+      "key": "portrait-miller",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-255c8a05-8aeb-4ab0-b32a-f07dddc0c2f1.png",
+      "originalWorkspacePath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/portrait-miller-v8-source.png",
+      "reason": "Baked checkerboard background; replaced by selected keyed edit."
+    },
+    {
+      "key": "enemy-street",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-45b88b21-6d58-4c38-a198-e39b6e551636.png",
+      "originalWorkspacePath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-street-v8-source.png",
+      "reason": "Combined source layout did not match required pose count; replaced by smaller individual role sheets."
+    },
+    {
+      "key": "enemy-police",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-474ae962-1693-4fd9-bfc8-52b94082da48.png",
+      "originalWorkspacePath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-police-v8-source.png",
+      "reason": "Combined source layout did not match required pose count; replaced by smaller individual role sheets."
+    },
+    {
+      "key": "enemy-federal",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-9a77f516-2fe1-49bc-8d88-684e65f3efb1.png",
+      "originalWorkspacePath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/enemy-federal-v8-source.png",
+      "reason": "Combined source layout did not match required pose count; replaced by smaller individual role sheets."
+    },
+    {
+      "key": "portrait-mark-cartoon",
+      "source": "C:\\Users\\Vladi\\AppData\\Roaming\\orca\\codex-accounts\\a7f988ac-615b-460c-8343-c92a17b39812\\home\\generated_images\\01a0713d-88d3-73d0-8031-c670ce9d4dd8\\exec-926695f8-8017-41fb-9a76-283c8220ca55.png",
+      "originalWorkspacePath": "C:/Users/Vladi/WebstormProjects/georgia-tu/public/assets/portrait-mark-v8-source.png",
+      "reason": "Baked checkerboard background; replaced by selected keyed edit."
+    }
+  ]
+}

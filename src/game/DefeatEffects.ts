@@ -18,13 +18,13 @@ export class DefeatEffects {
     sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
       this.scene.tweens.add({ targets: sprite, alpha: 0, delay: 100, duration: 280, onComplete: () => sprite.destroy() });
     });
-    const feet = enemy.y + (112 - enemy.originY * 128) * enemy.scaleY;
+    const feet = enemy.y + (enemy.spriteLayout.anchorY - enemy.originY * enemy.spriteLayout.height) * enemy.scaleY;
     const drop = Math.max(0, groundSurfaceBelow(enemy.x, feet, this.level) - feet);
     if (drop > 1) {
       // Visual settling only: a native tween, no residual collider or second physics step.
       this.scene.tweens.add({ targets: sprite, y: sprite.y + drop, duration: Phaser.Math.Clamp(drop * 3, 180, 450), ease: 'Quad.easeIn' });
     }
-    sprite.play(`${enemy.kind}-death`);
+    sprite.play(`${enemy.animationPrefix}-death`);
     if (paused) sprite.anims.pause();
   }
 

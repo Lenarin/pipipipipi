@@ -1,6 +1,7 @@
 import type { LevelData } from './Level';
 
 export const district: LevelData = {
+  theme: 'airport',
   name: 'Особо опасная выпечка', width: 2200, groundY: 312, exitX: 2110,
   bossIntroX: 1940, bossId: 'chief', introScene: 'airport-chief', exitScene: 'rough-landing',
   platforms: [{ x: 330, y: 250, width: 150 }, { x: 610, y: 198, width: 180 }, { x: 980, y: 230, width: 130 }, { x: 1320, y: 185, width: 190 }, { x: 1740, y: 230, width: 150 }],

@@ -13,6 +13,7 @@ import {
   type EnemyPhase,
 } from './EnemyAttackCycle';
 import { BossPattern } from './BossPattern';
+import { CAMPAIGN_LAYOUT, LEGACY_ENEMY_LAYOUT, campaignAttackFrame } from '../game/campaignArt';
 
 export type { EnemyAttack, EnemyAttackProfile, EnemyPhase } from './EnemyAttackCycle';
 export type EnemyEvent = EnemyAttackEvent & { enemy: Enemy };
@@ -66,10 +67,15 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private healthBarMs = 0;
   private nextBossAttack: LegacyBossAttack = 'boss-slam';
   private readonly bossPattern?: BossPattern;
+  readonly spriteLayout: typeof CAMPAIGN_LAYOUT | typeof LEGACY_ENEMY_LAYOUT;
+  readonly animationPrefix: string;
 
   constructor(scene: Phaser.Scene, id: string, kind: EnemyKind, x: number, y: number, options: EnemyOptions = {}) {
     const bossTexture = options.bossId ? `boss-${options.bossId}` : '';
-    super(scene, x, y, kind === 'boss' && bossTexture && scene.textures.exists(bossTexture) ? bossTexture : stats[kind].texture);
+    const variantTexture = kind === 'boss' ? bossTexture : options.faction ? `enemy-${options.faction}-${kind}` : '';
+    super(scene, x, y, variantTexture || stats[kind].texture);
+    this.spriteLayout = variantTexture ? CAMPAIGN_LAYOUT : LEGACY_ENEMY_LAYOUT;
+    this.animationPrefix = variantTexture || kind;
     this.id = id;
     this.kind = kind;
     this.bossId = kind === 'boss' ? options.bossId : undefined;
@@ -85,8 +91,12 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     const body = this.body as Phaser.Physics.Arcade.Body;
     const width = kind === 'hound' ? 26 : kind === 'boss' ? 44 : 18;
     const height = kind === 'hound' ? 18 : kind === 'boss' ? 62 : 30;
-    this.setOrigin(.5, (112 - height / 2) / 128);
-    body.setSize(width, height, false).setOffset(64 - width / 2, 112 - height);
+    const layout = this.spriteLayout;
+    this.setOrigin(layout.anchorX / layout.width, (layout.anchorY - height / 2) / layout.height);
+    body.setSize(width, height, false).setOffset(layout.anchorX - width / 2, layout.anchorY - height);
+    // Initialize native position/history together, without advancing physics. A reinforcement
+    // can be created after Arcade's update; stale prevFrame would move it below the floor.
+    body.preUpdate(false, 0);
     this.renderPose();
   }
 
@@ -128,7 +138,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.setScale(this.kind === 'boss' ? 1 : 1.15);
     if (Math.abs(player.y - this.y) > 68) { body.setVelocityX(0); return []; }
 
-    const bossRange = this.bossId === 'miller' ? 340 : this.bossId === 'mark' ? 170 : this.bossId === 'chief' ? 145 : 125;
+    const bossRange = this.bossPattern?.engagementRange ?? 125;
     const inAttackRange = this.kind === 'spitter' ? distance < 260 : this.kind === 'boss' ? distance < bossRange : this.kind === 'hound' ? distance < 76 : distance < 58;
     if (inAttackRange && this.cooldownMs <= 0 && canStartAttack) {
       const baseProfile = this.chooseProfile();
@@ -212,7 +222,16 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   get isAttacking(): boolean { return this.state === 'windup' || this.state === 'active'; }
   get isBlocking(): boolean { return this.bossPattern?.isBlocking(this.state, this.attackCycle.state.attack) ?? false; }
   get showsHealthBar(): boolean { return this.healthBarMs > 0 || this.attackCycle.state.phase !== 'idle'; }
-  get displayName(): string { return this.bossId ? bossNames[this.bossId] : names[this.kind]; }
+  get displayName(): string {
+    if (this.bossId) return bossNames[this.bossId];
+    if (!this.faction) return names[this.kind];
+    const factionNames = {
+      street: { walker: 'Уличный задира', spitter: 'Метатель бутылок', hound: 'Дворовый пёс', boss: '' },
+      police: { walker: 'Патрульный', spitter: 'Стрелок полиции', hound: 'Служебный пёс', boss: '' },
+      federal: { walker: 'Федеральный агент', spitter: 'Стрелок ФБР', hound: 'Пёс ФБР', boss: '' },
+    };
+    return factionNames[this.faction][this.kind];
+  }
   get attackFacing(): 1 | -1 { return this.attackCycle.state.facing; }
   get attackProgress(): number { return this.attackCycle.progress; }
   get attackHitAvailable(): boolean { return this.attackCycle.canHit; }
@@ -226,8 +245,13 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     const phase = this.state;
     const progress = this.attackProgress;
     const moving = Math.abs((this.body as Phaser.Physics.Arcade.Body).velocity.x) > 1;
-    if (phase === 'idle' && moving) { this.play(`${this.kind}-walk`, true); return; }
+    if (phase === 'idle' && moving) { this.play(`${this.animationPrefix}-walk`, true); return; }
     this.anims.stop();
+    if (this.spriteLayout === CAMPAIGN_LAYOUT) {
+      this.setFrame(phase === 'idle' ? 0 : phase === 'stagger' ? (this.bossId === 'miller' ? 12 : this.kind === 'boss' ? 11 : 10)
+        : campaignAttackFrame(this.attackProfile?.attack, phase, progress));
+      return;
+    }
     if (phase === 'idle') { this.setFrame(this.kind === 'spitter' ? 8 : this.kind === 'hound' ? 12 : 0); return; }
     if (phase === 'stagger') {
       const frame = Math.min(3, Math.floor((1 - this.staggerMs / this.staggerDuration) * 4));

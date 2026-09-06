@@ -35,7 +35,7 @@ export class DialogueScene extends Phaser.Scene {
     this.add.rectangle(320, 180, 640, 360, 0xefe5ce, 0.32);
     this.add.rectangle(320, 294, 632, 124, 0xfff4dc, 0.98).setStrokeStyle(2, 0x277c7b);
     this.left = this.add.image(77, 291, '__WHITE').setDisplaySize(108, 108);
-    this.right = this.add.image(563, 291, '__WHITE').setDisplaySize(108, 108);
+    this.right = this.add.image(563, 291, '__WHITE').setDisplaySize(108, 108).setFlipX(true);
     this.montage = this.add.image(320, 115, '__WHITE').setDisplaySize(316, 178).setVisible(false);
     if (this.cache.audio.exists('jump')) this.voice = this.sound.add('jump');
     const stopVoice = () => this.voice?.stop();

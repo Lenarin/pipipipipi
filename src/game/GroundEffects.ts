@@ -17,7 +17,7 @@ export class GroundEffects {
     this.droplets = scene.add.particles(0, 0, 'particle', {
       speedX: {min:-30,max:30}, speedY: {min:-45,max:-20}, gravityY:260,
       lifespan:220, scale:{start:.38,end:.12}, alpha:{start:.5,end:0},
-      tint:[0x7ca6a5,0xaaa990], emitting:false,
+      tint:[0xc0a884,0xd8c7a6], emitting:false,
     }).setDepth(3.7).setName('ground-droplets');
   }
 

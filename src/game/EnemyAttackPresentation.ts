@@ -1,9 +1,10 @@
 import Phaser from 'phaser';
 import type { Enemy } from '../gameplay/Enemy';
+import { campaignProjectileOrigin, volleyAngle } from './campaignArt';
 
-const AMBER = 0xd6a35f;
-const DANGER = 0xb95847;
-const RECOVERY = 0x7faeaa;
+const AMBER = 0x946013;
+const DANGER = 0xa73329;
+const RECOVERY = 0x247a73;
 const INK = 0x172a31;
 
 /** Supplemental danger and recovery cues. The enemy's sprite owns its entire body/weapon pose. */
@@ -27,6 +28,16 @@ export class EnemyAttackPresentation {
 
     const facing = enemy.attackFacing;
     const progress = enemy.attackProgress;
+    if (enemy.bossId === 'miller' && enemy.aimTarget) {
+      const origin = campaignProjectileOrigin(enemy, facing);
+      if (phase === 'windup' || phase === 'active') for (const spread of [-1, 0, 1]) {
+        const angle = volleyAngle(origin, enemy.aimTarget, facing, spread);
+        this.footprint.lineStyle(phase === 'active' ? 2 : 1, phase === 'active' ? DANGER : AMBER, phase === 'active' ? .8 : .55);
+        this.footprint.lineBetween(origin.x, origin.y, origin.x + Math.cos(angle) * profile.reach, origin.y + Math.sin(angle) * profile.reach);
+      }
+      this.drawTimeCue(enemy, phase, progress);
+      return;
+    }
     if (phase === 'windup') {
       this.footprint.fillStyle(AMBER, 0.055).fillRect(shape.x, shape.y, shape.width, shape.height);
       this.drawCorners(shape.x, shape.y, shape.width, shape.height, AMBER, 0.88, 1.5);
@@ -34,17 +45,13 @@ export class EnemyAttackPresentation {
       const edgeX = facing === 1 ? shape.x + closing : shape.x + shape.width - closing;
       this.footprint.lineStyle(2, 0xf2c677, 0.95).lineBetween(edgeX, shape.y, edgeX, shape.y + shape.height);
       this.drawDirectionalNotches(shape.x, shape.y, shape.width, shape.height, facing, AMBER, 0.85);
-      if (enemy.bossId === 'miller' && enemy.aimTarget) {
-        this.footprint.lineStyle(1.5, 0xf2c677, 0.82);
-        this.footprint.lineBetween(enemy.x, enemy.y - 6, enemy.aimTarget.x, enemy.aimTarget.y);
-      }
     } else if (phase === 'active') {
       this.footprint.fillStyle(DANGER, 0.16).fillRect(shape.x, shape.y, shape.width, shape.height);
       this.drawCorners(shape.x, shape.y, shape.width, shape.height, 0xe07a62, 0.96, 2);
       const strikeX = facing === 1 ? shape.x + shape.width : shape.x;
       this.footprint.lineStyle(3, 0xf0a083, 0.95).lineBetween(strikeX, shape.y - 2, strikeX, shape.y + shape.height + 2);
       this.drawDirectionalNotches(shape.x, shape.y, shape.width, shape.height, facing, DANGER, 0.9);
-      if (profile.motion === 'slam') {
+      if (profile.attack === 'boss-slam') {
         // The anchor launches a ground shockwave; this is the actual advertised area attack.
         const floor = enemy.y + 31;
         this.footprint.fillStyle(0xe8a56f, .7);
