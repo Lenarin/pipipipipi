@@ -4,6 +4,7 @@ import { decorateLevel, drawPlatform } from '../game/art';
 import { CombatAudio } from '../game/CombatAudio';
 import { CombatEffects } from '../game/CombatEffects';
 import { EnemyAttackPresentation } from '../game/EnemyAttackPresentation';
+import { DefeatEffects } from '../game/DefeatEffects';
 import { GroundEffects } from '../game/GroundEffects';
 import { KickAction } from '../gameplay/ActionState';
 import { AttackChain } from '../gameplay/Combat';
@@ -36,6 +37,7 @@ export class GameScene extends Phaser.Scene {
   private readonly kick = new KickAction(160);
   private activeSwing: number | null = null;
   private combatEffects!: CombatEffects;
+  private defeatEffects!: DefeatEffects;
   private combatAudio!: CombatAudio;
   private groundEffects!: GroundEffects;
   private readonly enemyPresentations = new Map<string, EnemyAttackPresentation>();
@@ -170,6 +172,7 @@ export class GameScene extends Phaser.Scene {
     this.cancelPlayerActions();
     this.cancelHitStop();
     this.bossActivated = false;
+    this.cameras.main.resetFX();
     this.level = levels[index];
     this.cameras.main.setBounds(0, 0, this.level.width, 360);
     this.cameras.main.setZoom(this.rules.mode === 'title' ? 1 : 1.2);
@@ -182,9 +185,12 @@ export class GameScene extends Phaser.Scene {
     this.projectiles?.destroy(true, true);
     this.combatEffects?.destroy();
     this.groundEffects?.destroy();
+    this.defeatEffects?.destroy();
     this.enemyPresentations.forEach((presentation) => presentation.destroy());
     this.enemyPresentations.clear();
-    this.children.removeAll(true);
+    // DisplayList.removeAll(true) only detaches and skips callbacks; it does not destroy.
+    // Destroy a stable copy so text canvases, native rain emitters and update entries are released.
+    for (const child of [...this.children.getChildren()]) child.destroy();
     decorateLevel(this, index, this.level.width);
     this.platforms = this.physics.add.staticGroup();
     this.enemies = this.physics.add.group();
@@ -193,6 +199,7 @@ export class GameScene extends Phaser.Scene {
     this.level.platforms.forEach((platform) => this.addPlatform(platform.x, platform.y, platform.width, platform.height ?? 18, true));
     this.player = new Player(this, 110, 265);
     this.combatEffects = new CombatEffects(this);
+    this.defeatEffects = new DefeatEffects(this, this.level);
     this.combatAudio = new CombatAudio(this);
     this.groundEffects = new GroundEffects(this);
     this.player.play('hero-idle');
@@ -311,12 +318,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   private damageEnemy(enemy: Enemy, damage: number): void {
-    if (!enemy.defeated) return;
+    if (!enemy.active || !enemy.defeated) return;
+    this.defeatEffects.show(enemy, this.hitStopActive);
     this.rules.recordKill(enemy.kind === 'boss' ? 20 : 3);
     this.combatAudio.kill();
-    const burst = this.add.particles(enemy.x, enemy.y, 'particle', { speed: { min: 40, max: 130 }, lifespan: 340, quantity: 10, tint: [0xffd4aa, 0x9ac8c1], emitting: false });
-    burst.explode();
-    this.time.delayedCall(400, () => burst.destroy());
     this.enemyPresentations.get(enemy.id)?.destroy();
     this.enemyPresentations.delete(enemy.id);
     const healthBar = enemy.getData('healthBar') as Phaser.GameObjects.Graphics | undefined;
@@ -380,7 +385,7 @@ export class GameScene extends Phaser.Scene {
     this.cancelPlayerActions();
     this.player.showHurt();
     this.playSound('hit');
-    if (this.shakeEnabled) this.cameras.main.shake(85, 0.008);
+    if (this.shakeEnabled) this.cameras.main.shake(85, 0.004);
     this.player.setTint(0xff8f8f);
     this.time.delayedCall(130, () => this.player?.active && this.player.clearTint());
     if (this.rules.mode === 'dead') this.onDeath();
@@ -536,7 +541,7 @@ export class GameScene extends Phaser.Scene {
     if (command === 'cache-health') { this.closeCacheChoice('health'); return; }
     if (command === 'cache-cancel') { this.closeCacheChoice(); return; }
     if (command === 'mute') { this.sound.mute = !this.sound.mute; return; }
-    if (command === 'shake') { this.shakeEnabled = !this.shakeEnabled; this.setMessage(this.shakeEnabled ? 'Тряска камеры включена' : 'Тряска камеры выключена'); }
+    if (command === 'shake') { this.shakeEnabled = !this.shakeEnabled; if (!this.shakeEnabled) this.cameras.main.shakeEffect.reset(); this.setMessage(this.shakeEnabled ? 'Тряска камеры включена' : 'Тряска камеры выключена'); }
   }
 
   private pauseForFocusLoss(): void {
@@ -558,10 +563,14 @@ export class GameScene extends Phaser.Scene {
     return direction === 0 ? undefined : direction > 0 ? 1 : -1;
   }
   private pauseActorAnimations(): void {
+    this.defeatEffects?.pause();
+    this.groundEffects?.pause();
     this.player?.anims.pause();
     this.enemies?.getChildren().forEach((child) => (child as Enemy).anims.pause());
   }
   private resumeActorAnimations(): void {
+    this.defeatEffects?.resume();
+    this.groundEffects?.resume();
     this.player?.anims.resume();
     this.enemies?.getChildren().forEach((child) => (child as Enemy).anims.resume());
   }
@@ -600,6 +609,7 @@ export class GameScene extends Phaser.Scene {
   private cleanUp(): void {
     this.cancelAttack(); this.cancelHitStop(); this.combatEffects?.destroy();
     this.groundEffects?.destroy();
+    this.defeatEffects?.destroy();
     this.enemyPresentations.forEach((presentation) => presentation.destroy());
     this.enemyPresentations.clear();
     bridge.off('command', this.commandHandler);

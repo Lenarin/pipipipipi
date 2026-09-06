@@ -37,3 +37,19 @@ test('running and landing create small ground droplets, idle does not continuous
   await page.waitForFunction(()=>(window as any).__GAME__.scene.getScene('Game').player.grounded);
   expect(await page.evaluate(()=>{const s=(window as any).__GAME__.scene.getScene('Game');return s.children.getByName('ground-droplets').getAliveParticleCount();})).toBeGreaterThan(0);
 });
+
+test('ground droplets freeze with the game on pause and resume afterward', async ({ page }) => {
+  await page.goto('/'); await page.getByRole('button',{name:/ВОЙТИ В ГОРОД/}).click();
+  await expect.poll(()=>page.evaluate(()=>(window as any).__GAME__.scene.getScene('Game').player.grounded)).toBe(true);
+  await page.evaluate(() => {
+    const s = (window as any).__GAME__.scene.getScene('Game');
+    s.children.getByName('ground-droplets').explode(6, s.player.x, s.player.body.bottom);
+  });
+  await page.keyboard.press('Escape');
+  const before = await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').children.getByName('ground-droplets').getAliveParticleCount());
+  expect(before).toBeGreaterThan(0);
+  await page.waitForTimeout(300);
+  expect(await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').children.getByName('ground-droplets').getAliveParticleCount())).toBe(before);
+  await page.getByRole('button', { name: /ПРОДОЛЖИТЬ/ }).click();
+  await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').children.getByName('ground-droplets').getAliveParticleCount())).toBe(0);
+});

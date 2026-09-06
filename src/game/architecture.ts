@@ -8,6 +8,18 @@ function weathering(g: Phaser.GameObjects.Graphics, x: number, y: number, width:
     if (pattern < 4) g.fillStyle(pattern === 0 ? 0x9a8a73 : 0x1c323b, pattern === 0 ? .13 : .19)
       .fillRect(x + col, y + row, pattern === 0 ? 5 : 3, pattern % 2 + 1);
   }
+  // Broken plaster islands and rain runs: irregular clusters, not a repeating tile grid.
+  for (let row = 5; row < height - 8; row += 13) for (let col = 4; col < width - 10; col += 17) {
+    const hash = (Math.imul(Math.floor(x + col), 73856093) ^ Math.imul(Math.floor(y + row), 19349663)) >>> 0;
+    if (hash % 5 === 0) {
+      const dx = x + col, dy = y + row;
+      g.fillStyle(0x263b40, .28).fillRect(dx, dy, 7, 3).fillRect(dx + 2, dy - 2, 6, 2);
+      g.fillStyle(0xa39275, .16).fillRect(dx + 2, dy + 3, 4, 1);
+    } else if (hash % 7 === 0) {
+      g.fillStyle(0x132c35, .2).fillRect(x + col, y + row, 2, Math.min(14, height - row));
+      g.fillStyle(0x657d70, .13).fillRect(x + col + 2, y + row + 4, 1, 7);
+    }
+  }
   for (let row = 12; row < height; row += 21) {
     g.fillStyle(0x1d343d, .23).fillRect(x + 2, y + row, width - 4, 1);
     for (let col = row % 2 * 15 + 13; col < width; col += 31) g.fillRect(x + col, y + row - 11, 1, 11);
@@ -30,10 +42,17 @@ export function drawStructuralPlatform(scene: Phaser.Scene, cx: number, cy: numb
     g.setDepth(0).fillStyle(0x1d3038).fillRect(x, top, width, height);
     edge.fillStyle(0x8da79e).fillRect(x, top, width, 2);
     g.fillStyle(0x354b51).fillRect(x, top + 3, width, 5);
+    for (let px = x + 9; px < x + width - 55; px += 127) {
+      // Thin pools sit on the pavement; highlights never imply another landing height.
+      g.fillStyle(0x182f37, .7).fillRect(px, top + 4, 43, 3).fillRect(px + 6, top + 3, 26, 1);
+      g.fillStyle(0x76958e, .55).fillRect(px + 4, top + 4, 16, 1).fillRect(px + 27, top + 5, 9, 1);
+    }
     for (let px = x; px < x + width; px += 28) {
       g.fillStyle(0x2c4148).fillRect(px + 1, top + 9, 25, 8);
       g.fillStyle(0x24383f).fillRect(px - 10, top + 20, 25, 11);
       g.fillStyle(0x3b5157).fillRect(px + 2, top + 9, 22, 1);
+      g.fillStyle(0x142a33, .35).fillRect(px + 7, top + 14, 7, 1).fillRect(px - 3, top + 27, 5, 2);
+      g.fillStyle(0x526665, .22).fillRect(px + 16, top + 12, 3, 1);
       if (px % 112 === 0) {
         g.fillStyle(0x658284, .45).fillRect(px + 4, top + 5, 42, 1);
         g.fillStyle(0xac936b, .25).fillRect(px + 6, top + 20, 31, 2);
@@ -46,7 +65,11 @@ export function drawStructuralPlatform(scene: Phaser.Scene, cx: number, cy: numb
     // Low service kiosk / parked cargo cart: a first, obvious step onto the buildings.
     g.fillStyle(0x34484b).fillRect(x + 5, top + height, width - 10, 312 - top - height);
     g.fillStyle(0x687770).fillRect(x + 7, top + height + 3, width - 14, 2);
-    for (let px = x + 12; px < x + width - 8; px += 11) g.fillStyle(0x253b42).fillRect(px, top + height + 7, 2, 20);
+    for (let px = x + 12; px < x + width - 8; px += 11) {
+      g.fillStyle(0x253b42).fillRect(px, top + height + 7, 2, 20);
+      g.fillStyle(0x84917c, .3).fillRect(px + 2, top + height + 7, 1, 18);
+      g.fillStyle(0xa89978, .45).fillRect(px + 5, top + height + 9, 1, 1);
+    }
   } else {
     const facade = top < 170 ? 0x4b4a49 : 0x3e4b4e;
     g.fillStyle(palette.ink).fillRect(x - 3, top + height, width + 6, 312 - top - height);
@@ -54,8 +77,13 @@ export function drawStructuralPlatform(scene: Phaser.Scene, cx: number, cy: numb
     weathering(g, x + 4, top + height + 1, width - 8, Math.max(8, 253 - top - height));
     // Open ground-floor arcade, a real walking passage rather than a solid painted wall.
     for (let px = x + 8; px < x + width - 28; px += 50) {
+      g.fillStyle(0x697065, .38).fillCircle(px + 18, 267, 21);
       g.fillStyle(0x1a2c33).fillRect(px, 267, 36, 45);
       g.fillCircle(px + 18, 267, 18);
+      g.fillStyle(0x111f29, .55).fillRect(px + 3, 269, 30, 39);
+      g.fillStyle(0x273d43, .65).fillRect(px + 3, 272, 2, 33);
+      g.fillStyle(0x83725a, .3).fillRect(px + 9, 292, 19, 16);
+      g.fillStyle(0x10272f, .6).fillRect(px + 11, 294, 15, 13).fillRect(px + 18, 294, 1, 13);
       g.fillStyle(0x7c735e).fillRect(px - 3, 274, 3, 38);
       g.fillStyle(0x32454a).fillRect(px + 34, 274, 5, 38);
       for (let py = 277; py < 310; py += 7) g.fillStyle(0x839082, .35).fillRect(px + 34, py, 4, 1);
@@ -70,7 +98,13 @@ export function drawStructuralPlatform(scene: Phaser.Scene, cx: number, cy: numb
         g.fillStyle(0xb39b68, .7).fillRect(px + 3, wy + 2, 7, 21);
         g.fillStyle(0x3f5755).fillRect(px - 5, wy, 5, 28);
         g.fillRect(px + 23, wy, 5, 28);
-        g.fillStyle(0x273b3f).fillRect(px + 10, wy, 2, 27);
+        g.fillStyle(0x273b3f).fillRect(px + 10, wy, 2, 27).fillRect(px, wy + 12, 22, 2);
+        g.fillStyle(0xdbbb80, .25).fillRect(px + 4, wy + 3, 2, 6);
+        g.fillStyle(0x20343b, .8).fillRect(px - 3, wy + 28, 30, 3);
+        g.fillStyle(0x9a977e, .5).fillRect(px - 4, wy + 27, 32, 1);
+        for (let py = wy + 3; py < wy + 26; py += 4) {
+          g.fillStyle(0x21393e, .6).fillRect(px - 4, py, 4, 1).fillRect(px + 23, py, 4, 1);
+        }
       }
       g.fillStyle(0x6d6860, .35).fillRect(px + 8, 247, 20, 3);
     }
@@ -81,7 +115,9 @@ export function drawStructuralPlatform(scene: Phaser.Scene, cx: number, cy: numb
     g.fillStyle(0x79918b).fillRect(x + 1, top - 21, width - 2, 1);
     for (let px = x + 3; px < x + width; px += 13) {
       g.fillStyle(0x566c67).fillRect(px, top - 19, 2, 19);
+      g.fillStyle(0x8c8c74, .55).fillRect(px, top - 18, 1, 3).fillRect(px, top - 5, 1, 3);
       g.lineStyle(1, 0x566c67).lineBetween(px, top - 18, px + 10, top - 2);
+      g.lineStyle(1, 0x52665e).strokeRect(px + 3, top - 13, 4, 5);
     }
     // Brackets anchor the ledge to its facade.
     g.lineStyle(3, palette.wood).lineBetween(x + 6, top + height + 14, x + 22, top + height);
@@ -117,6 +153,13 @@ export function decorateArchitecture(scene: Phaser.Scene, stage: number, width: 
   g.fillStyle(0xb59864).fillRect(28, 270, 49, 34);
   g.fillStyle(0x263536).fillRect(79, 260, 3, 52);
   g.fillStyle(0xc2aa78).fillRect(87, 270, 7, 2);
+  g.fillStyle(0x574d3b).fillRect(30, 273, 44, 2).fillRect(30, 293, 44, 2);
+  for (let px = 34; px < 72; px += 11) {
+    g.fillStyle(0xe0bd7c, .5).fillEllipse(px, 290, 8, 4);
+    g.fillStyle(0x6f624a, .75).fillRect(px - 2, 289, 1, 2);
+  }
+  g.fillStyle(0x243b3d).fillRect(50, 273, 2, 31);
+  g.fillStyle(0xdec391, .2).fillRect(31, 277, 1, 10).fillRect(72, 280, 1, 12);
   g.fillStyle(0x6b6050).fillRect(20, 307, 131, 5);
   sign(scene, 84, 246, stage === 2 ? 'ПОРТ · 24/7*' : 'პური  /  ХЛЕБ', '#dcbf8b', 9);
   sign(scene, 112, 285, 'ЖИВЫМ\nВ ДОЛГ НЕ ДАЁМ', '#cbbda0', 5);

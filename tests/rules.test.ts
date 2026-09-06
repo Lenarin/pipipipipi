@@ -33,6 +33,27 @@ describe('RunRules', () => {
     expect(rules.hitTarget(second, 'walker-1')).toBe(true);
   });
 
+  it('retires earlier swing tokens and keeps only the current hit set in a long run', () => {
+    const rules = new RunRules(); rules.start();
+    const stale = rules.beginSwing();
+    for (let i = 0; i < 10_000; i++) {
+      const swing = rules.beginSwing();
+      expect(rules.hitTarget(swing, 'walker')).toBe(true);
+      expect(rules.hitTarget(swing, 'walker')).toBe(false);
+    }
+    expect(rules.hitTarget(stale, 'untouched-target')).toBe(false);
+    expect((rules as unknown as { swingHits: Map<number, Set<string>> }).swingHits.size).toBe(1);
+  });
+
+  it('cannot reuse a pre-restart token after a new attack starts', () => {
+    const rules = new RunRules(); rules.start();
+    const stale = rules.beginSwing();
+    rules.start(); const current = rules.beginSwing();
+    expect(current).not.toBe(stale);
+    expect(rules.hitTarget(stale, 'walker')).toBe(false);
+    expect(rules.hitTarget(current, 'walker')).toBe(true);
+  });
+
   it('spends a flask and heals only after an uninterrupted 750 ms channel', () => {
     const rules = new RunRules();
     rules.start();

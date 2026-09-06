@@ -7,7 +7,7 @@ async function start(page: Page) {
   await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').player.grounded)).toBe(true);
 }
 
-test('all 128 packed frames contain artwork, no magenta, and contact markers land on visible pixels', async ({ page }) => {
+test('all 160 packed frames contain artwork, no magenta, and contact markers land on visible pixels', async ({ page }) => {
   await start(page);
   const markers = HERO_PIPE_POSES.flatMap((pose, i) => pose.contact ? [0, 2].map(j => {
     const p = posePoint(pose, pose.contact![j], pose.contact![j + 1]);
@@ -16,7 +16,7 @@ test('all 128 packed frames contain artwork, no magenta, and contact markers lan
   const result = await page.evaluate(markers => {
     const s = (window as any).__GAME__.scene.getScene('Game');
     const counts = [], empty = [], pink = [];
-    for (const [key, count] of [['hero-full', 64], ['enemy-full', 52], ['boss-full', 12]] as const) {
+    for (const [key, count] of [['hero-full', 64], ['enemy-full', 64], ['boss-full', 32]] as const) {
       const source = s.textures.get(key).getSourceImage();
       const c = source.getContext('2d');
       counts.push(s.textures.get(key).frameTotal - 1);
@@ -39,7 +39,7 @@ test('all 128 packed frames contain artwork, no magenta, and contact markers lan
     });
     return { counts, empty, pink, misses };
   }, markers);
-  expect(result).toEqual({ counts: [64, 52, 12], empty: [], pink: [], misses: [] });
+  expect(result).toEqual({ counts: [64, 64, 32], empty: [], pink: [], misses: [] });
 });
 
 test('three full-body strikes hit forward only, in both facings, for 16 / 16 / 32 damage', async ({ page }) => {

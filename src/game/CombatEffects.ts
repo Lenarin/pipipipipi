@@ -105,16 +105,22 @@ export class CombatEffects {
 
   confirmHit(x: number, y: number, damage: number, finisher: boolean, facing: 1 | -1, shakeEnabled: boolean): void {
     const flash = this.scene.add.graphics({ x, y }).setDepth(5.5).setName('pipe-impact');
-    const size = finisher ? 11 : 7;
-    flash.fillStyle(0xfff1c7, 1).fillRect(-size, -1, size * 2, 3).fillRect(-1, -size, 3, size * 2);
-    flash.fillStyle(0xe69562, .8).fillRect(-4, -4, 3, 3).fillRect(3, 3, 3, 3);
+    // A compact directional chip at contact, not a large cross over both actors.
+    flash.setScale(facing, 1);
+    flash.fillStyle(0xffedc0, 1).fillRect(-3, -2, 7, 4).fillRect(-1, -4, 3, 8);
+    flash.fillStyle(0xe6a373, .85).fillRect(4, -5, 4, 2).fillRect(5, 3, 3, 2);
+    if (finisher) {
+      flash.fillStyle(0xffd59c, .9).fillRect(7, -8, 5, 2).fillRect(8, 6, 4, 2);
+      flash.fillStyle(0xb56751, .8).fillRect(-5, 3, 2, 3);
+    }
     // Scene clock advances through hitstop: flash blooms at contact, not after the pause.
     this.scene.time.delayedCall(finisher ? 105 : 80, () => flash.destroy());
     const sparks = this.scene.add.particles(x, y, 'particle', {
       speed: { min: finisher ? 75 : 45, max: finisher ? 175 : 120 },
       speedX: facing === 1 ? { min: finisher ? 55 : 35, max: finisher ? 145 : 105 } : { min: finisher ? -145 : -105, max: finisher ? -55 : -35 },
-      lifespan: finisher ? 260 : 180,
-      quantity: finisher ? 14 : 8,
+      lifespan: finisher ? 230 : 170,
+      scale: { start: finisher ? .65 : .5, end: .18 },
+      quantity: finisher ? 10 : 6,
       tint: finisher ? [0xfff0b8, 0xff9c7d] : [0xffd4aa, 0x9ac8c1],
       emitting: false,
     });
@@ -122,10 +128,10 @@ export class CombatEffects {
     sparks.explode();
     this.scene.time.delayedCall(470, () => sparks.destroy());
     if (damage > 0) {
-      const label = this.scene.add.text(x, y - 9, `-${damage}`, { fontFamily: 'monospace', fontSize: finisher ? '15px' : '12px', color: finisher ? '#fff1bc' : '#ffe2b8', stroke: '#14242d', strokeThickness: 3 }).setOrigin(0.5).setDepth(8);
-      this.scene.tweens.add({ targets: label, y: y - 20, alpha: 0, scale: finisher ? 1.24 : 1, duration: 440, onComplete: () => label.destroy() });
+      const label = this.scene.add.text(x + facing * 5, y - 26, `-${damage}`, { fontFamily: 'monospace', fontSize: finisher ? '12px' : '10px', color: finisher ? '#fff1bc' : '#ffe2b8', stroke: '#14242d', strokeThickness: 2 }).setOrigin(0.5).setDepth(8).setName('pipe-damage');
+      this.scene.tweens.add({ targets: label, y: y - 43, alpha: 0, scale: finisher ? 1.08 : 1, duration: 440, onComplete: () => label.destroy() });
     }
-    if (finisher && shakeEnabled) this.scene.cameras.main.shake(95, 0.008);
+    if (finisher && shakeEnabled) this.scene.cameras.main.shake(80, 0.0035);
   }
 
   destroy(): void { this.channel.destroy(); this.trail.destroy(); }

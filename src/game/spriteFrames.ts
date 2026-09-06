@@ -53,10 +53,35 @@ export const ENEMY_ATTACK_POSES: readonly SpritePose[] = [
   [159,1230], [469,1230], [788,1230], [1075,1230],
 ].map(([anchorX, feetY], i) => ({ anchorX, feetY, scale: i < 8 ? 36 / 224 : i < 16 ? 34 / 216 : 24 / 101 }));
 
-export function enemyAttackFrame(kind: 'walker' | 'spitter' | 'hound', phase: 'windup' | 'active' | 'recovery', progress: number): number {
+// Collapse keeps a fixed anatomical scale and a shared ground registration per creature.
+export const ENEMY_DEATH_POSES: readonly SpritePose[] = [
+  [149,382], [447,382], [750,382], [1075,382],
+  [148,746], [447,746], [750,746], [1075,746],
+  [160,1147], [460,1147], [762,1147], [1065,1147],
+].map(([anchorX, feetY], i) => ({ anchorX, feetY, scale: i < 4 ? 36 / 276 : i < 8 ? 34 / 275 : 24 / 145 }));
+
+export const BOSS_DEATH_POSES: readonly SpritePose[] = [
+  [323,582], [866,582], [1400,582], [1890,582],
+].map(([anchorX, feetY], i) => ({ anchorX, feetY, scale: 70 / 445, flip: i < 3 }));
+
+export const BOSS_ATTACK_POSES: readonly SpritePose[] = [
+  [225,263], [585,263], [930,263], [1289,263],
+  [203,494], [550,503], [925,501], [1284,504],
+  [212,738], [591,744], [938,738], [1240,740],
+  [223,970], [557,969], [928,972], [1249,974],
+].map(([anchorX, feetY]) => ({ anchorX, feetY, scale: 70 / 210 }));
+
+export function bossAttackFrame(phase: 'windup' | 'active' | 'recovery', progress: number, casting: boolean): number {
+  return 16 + (casting ? 8 : 0) + enemyPoseOffset(phase, progress);
+}
+
+function enemyPoseOffset(phase: 'windup' | 'active' | 'recovery', progress: number): number {
   const p = Math.max(0, Math.min(1, progress));
-  const offset = phase === 'windup' ? Math.min(3, Math.floor(p * 4)) : phase === 'active' ? (p < .5 ? 4 : 5) : p < .45 ? 6 : 7;
-  return 28 + (kind === 'walker' ? 0 : kind === 'spitter' ? 8 : 16) + offset;
+  return phase === 'windup' ? Math.min(3, Math.floor(p * 4)) : phase === 'active' ? (p < .5 ? 4 : 5) : p < .45 ? 6 : 7;
+}
+
+export function enemyAttackFrame(kind: 'walker' | 'spitter' | 'hound', phase: 'windup' | 'active' | 'recovery', progress: number): number {
+  return 28 + (kind === 'walker' ? 0 : kind === 'spitter' ? 8 : 16) + enemyPoseOffset(phase, progress);
 }
 
 export function pipeFrame(step: number, phase: AttackPhase, progress: number): number {

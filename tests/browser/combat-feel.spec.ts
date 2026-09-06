@@ -123,3 +123,17 @@ test('a real miss plays only pipe air, contact adds impact and finisher has a di
   expect(hits.filter((x: string) => x.startsWith('pipe-heavy-'))).toHaveLength(1);
   expect(new Set(hits.filter((x: string) => x.startsWith('pipe-swing-'))).size).toBe(3);
 });
+
+test('heavy contact uses a restrained camera impulse and respects the effects switch', async ({ page }) => {
+  const result = await page.evaluate(() => {
+    const s = (window as any).__GAME__.scene.getScene('Game'); s.scene.pause();
+    s.combatEffects.confirmHit(300, 270, 32, true, 1, true);
+    const effect = s.cameras.main.shakeEffect, intensity = effect.intensity.x;
+    effect.reset();
+    s.combatEffects.confirmHit(300, 270, 32, true, 1, false);
+    return { intensity, disabled: effect.isRunning };
+  });
+  expect(result.intensity).toBeGreaterThan(0);
+  expect(result.intensity).toBeLessThanOrEqual(.004);
+  expect(result.disabled).toBe(false);
+});

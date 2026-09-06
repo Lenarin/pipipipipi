@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import type { EnemyKind } from '../levels';
-import { enemyAttackFrame } from '../game/spriteFrames';
+import { enemyAttackFrame, bossAttackFrame } from '../game/spriteFrames';
 import {
   attackShapeAt,
   EnemyAttackCycle,
@@ -204,9 +204,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       const frame = Math.min(3, Math.floor((1 - this.staggerMs / this.staggerDuration) * 4));
       this.setFrame(this.kind === 'boss' ? 3 : (this.kind === 'spitter' ? 20 : this.kind === 'hound' ? 24 : 16) + frame); return;
     }
-    const offset = phase === 'windup' ? 0 : phase === 'active' ? (progress < .5 ? 1 : 2) : 3;
     if (this.kind !== 'boss') this.setFrame(enemyAttackFrame(this.kind, phase, progress));
-    else this.setFrame((this.attackProfile?.motion === 'cast' ? 8 : 4) + offset);
+    else this.setFrame(bossAttackFrame(phase, progress, this.attackProfile?.motion === 'cast'));
   }
 
   private applyAttackMotion(body: Phaser.Physics.Arcade.Body): void {

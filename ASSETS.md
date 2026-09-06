@@ -68,3 +68,18 @@ Built-in imagegen, using the v0.4 photo-derived hero and enemy sheets as identit
 Hero atlas: 1536×1152, 64 frames; new pipe frames40–63, existing action/kick indexes unchanged. Enemy atlas: 896×512, 28 frames; recoil16–27. Boss atlas unchanged. 104 frames packed, of which 12 old hero pipe poses are retained but unused. Registration is measured from the generated source pixels, including pipe hand/tip contacts; fixed body size and foot registration remain intact. Import is deterministic key/trim/pack only. Native Phaser Graphics adds a short translucent pipe trail and local impact star; no code-drawn body parts.
 
 Audio regeneration: `node scripts/generate-audio.mjs`; optional first argument selects an output directory. Original seven WAVs are byte-preserved by the extended generator. New effects combine filtered air/noise, brief low body transients and decaying inharmonic metal tones; three variants rotate without immediate repetition. Playback/mixing/mute remain Phaser-owned.
+
+## Version 0.6 control and enemy animation polish (2026-09-06)
+
+Created with built-in imagegen, with the existing enemy and boss art as identity references. Exact prompts and reference paths: [SPRITE-PROMPTS-0.6.json](docs/SPRITE-PROMPTS-0.6.json). The original personal photo and earlier sheets remain unchanged.
+
+| Saved source | Frames | Role |
+| --- | ---: | --- |
+| `public/assets/enemy-attacks-v6-source.png` | 24 | Four anticipation, two active, two recovery poses per walker/spitter/hound;1254×1254 |
+| `public/assets/enemy-death-v6-source.png` | 12 | Four non-graphic whole-body collapse poses per ordinary enemy;1254×1254 |
+| `public/assets/boss-death-v6-source.png` | 4 | Complete port-foreman collapse;2172×724; first three source poses normalized to face right |
+| `public/assets/boss-attacks-v6-source.png` | 16 | Eight poses each for anchor slam and volley;1536×1024 |
+
+Runtime uses the established deterministic chroma-key/component/registration pipeline, not generated animation at runtime. Standing anatomical scale is fixed within each creature; compressed poses are not enlarged. The hero remains64 frames in1536×1152; ordinary enemies now64 in1024×1024; boss32 in1024×512. Total160 packed frames, including preserved legacy indexes. New ordinary attack frames28–51/death52–63; boss death12–15/attacks16–31.
+
+Ground contact, compact directional impact chips, quieter camera impulses, irregular plaster wear, shutter detail, paving highlights and arcade recesses are code-native Phaser visuals. No third-party art was downloaded, no new engine or audio dependency was introduced, and no runtime AI service is required.

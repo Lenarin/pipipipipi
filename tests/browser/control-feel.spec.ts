@@ -82,3 +82,15 @@ test('camera settles promptly after movement release instead of carrying the str
   expect(settled.x - release.x).toBeLessThan(3);
   expect(settled.camera - release.camera).toBeLessThan(12);
 });
+
+test('restart and disabling shake discard an already-running camera impulse', async ({ page }) => {
+  const result = await page.evaluate(() => {
+    const s = (window as any).__GAME__.scene.getScene('Game');
+    s.cameras.main.shake(500, .004); s.handleCommand('restart');
+    const afterRestart = s.cameras.main.shakeEffect.isRunning;
+    s.cameras.main.shake(500, .004); s.handleCommand('shake');
+    return { afterRestart, afterDisable: s.cameras.main.shakeEffect.isRunning, enabled: s.shakeEnabled };
+  });
+  expect(result.enabled).toBe(false);
+  expect(result.afterRestart).toBe(false); expect(result.afterDisable).toBe(false);
+});

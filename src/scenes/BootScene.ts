@@ -12,6 +12,9 @@ export class BootScene extends Phaser.Scene {
     this.load.image('hero-combat-source', `${base}assets/hero-combat-v4-source.png`);
     this.load.image('hero-pipe-source', `${base}assets/hero-combat-v5-source.png`);
     this.load.image('enemy-recoil-source', `${base}assets/enemy-recoil-v5-source.png`);
+    this.load.image('enemy-death-source', `${base}assets/enemy-death-v6-source.png`);
+    this.load.image('boss-attack-source', `${base}assets/boss-attacks-v6-source.png`);
+    this.load.image('boss-death-source', `${base}assets/boss-death-v6-source.png`);
     this.load.image('enemy-attack-source', `${base}assets/enemy-attacks-v6-source.png`);
     this.load.image('hero-actions-source', `${base}assets/hero-actions-v4-source.png`);
     this.load.image('enemy-animation-source', `${base}assets/enemy-animation-v4-source.png`);

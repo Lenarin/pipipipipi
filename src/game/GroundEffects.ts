@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import type { LevelData } from '../levels';
 import type { Player } from '../gameplay/Player';
+import { groundSurfaceBelow } from './groundSurface';
 
 /** Ground contact feedback only. Arcade still decides when the actor is grounded. */
 export class GroundEffects {
@@ -22,11 +23,7 @@ export class GroundEffects {
 
   update(player: Player, level: LevelData, walking: boolean): void {
     const body = player.body as Phaser.Physics.Arcade.Body;
-    let floor = level.groundY;
-    for (const p of level.platforms) {
-      const top = p.y - (p.height ?? 18) / 2;
-      if (player.x >= p.x - p.width / 2 && player.x <= p.x + p.width / 2 && top >= body.bottom - 2) floor = Math.min(floor, top);
-    }
+    const floor = groundSurfaceBelow(player.x, body.bottom, level);
     const height = Math.max(0, floor - body.bottom), closeness = Math.max(.2, 1 - height / 150);
     this.shadow.setVisible(true).setPosition(player.x, floor).setScale(.45 + closeness * .55, 1).setAlpha(.14 + closeness * .36);
     const grounded = player.grounded;
@@ -45,5 +42,7 @@ export class GroundEffects {
     this.previousX = player.x;
   }
 
+  pause(): void { this.droplets.setActive(false); }
+  resume(): void { this.droplets.setActive(true); }
   destroy(): void { this.shadow.destroy(); this.droplets.destroy(); }
 }

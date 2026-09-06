@@ -35,7 +35,6 @@ export class RunRules {
     this.elapsed = 0;
     this.now = 0;
     this.immunityUntil = 0;
-    this.swingNumber = 0;
     this.cooldownUntil.clear();
     this.swingHits.clear();
     this.healingChannel.reset();
@@ -95,6 +94,8 @@ export class RunRules {
   beginSwing(): number | null {
     if (this.mode !== 'playing') return null;
     const swing = ++this.swingNumber;
+    // Only one player stroke is active. Retired tokens cannot hit or accumulate for the entire run.
+    this.swingHits.clear();
     this.swingHits.set(swing, new Set());
     return swing;
   }
