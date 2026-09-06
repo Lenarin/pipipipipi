@@ -1,4 +1,4 @@
-# После дождя
+# Ларик. Пока горячий
 
 ## Register
 
@@ -10,7 +10,7 @@ Players who want a short browser action platformer inspired by Dead Cells. The f
 
 ## Product Purpose
 
-A complete single-player run through a fictional, gloomy Batumi, from an old residential courtyard to the waterfront. Move, jump, dodge readable attacks, fight three enemy types, collect upgrades, and defeat a port guardian. Death allows immediate replay.
+A complete single-player delivery from sunny Batumi through its airport to an American suburb. Three chapters, seven scenes and 43 lines connect the existing pipe combat and upgrade routes. Mark, the police chief and Agent Miller each guard a chapter; E explicitly starts their introduction and the post-combat outcome. Death allows immediate replay from Nastya's opening call.
 
 ## Technology Decision
 
@@ -18,7 +18,7 @@ The user approved Phaser 4 + TypeScript + Vite on 2026-09-05 to maximize reuse o
 
 ## Brand Personality
 
-Black comedy in an atmospheric, tactile city. The apocalypse is another municipal inconvenience: rent, closed offices, exhausted neighbors and eternal utility bills. Humor targets bureaucracy and everyday absurdity, never Georgian identity. The hero is based on the user's photograph: dark swept hair, rectangular black glasses, beard, black sweatshirt and trousers. The city combines Georgian balconies, concrete apartment buildings, rain, warm shop windows and port infrastructure.
+Absurd black comedy about delivering one khachapuri while it is hot. Bright sunny comic visuals supersede the earlier noir direction. Humor targets bureaucracy and everyday absurdity, never Georgian identity. Larik retains the user's photograph reference: dark swept hair, rectangular black glasses, beard and black clothes. Mark uses the user's second photograph interpreted as a simplified cartoon. Raw photographs never appear in the game. Georgian balconies and a bakery, airport terminal and American suburban house distinguish the chapters.
 
 ## Anti-references
 
@@ -36,4 +36,4 @@ No medieval castle setting, glossy website dashboard, stock hero character, or b
 
 ## Accessibility & Inclusion
 
-Russian UI, visible keyboard controls, high-contrast attack telegraphs, optional camera shake and sound, pause on focus loss, and keyboard-operable menus. Health and cooldowns use labels as well as color. Touch and gamepad controls are outside this first version.
+Russian UI, visible keyboard controls, high-contrast attack telegraphs, optional camera shake and sound, pause on focus loss, and keyboard-operable menus. Dialogue can be revealed, advanced or skipped with the same story outcome; it freezes combat, projectiles and world clocks. Health and cooldowns use labels as well as color. Touch, gamepads, voice acting, branching and run saves are outside this version.

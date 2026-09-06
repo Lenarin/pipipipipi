@@ -5,7 +5,7 @@ import { resolve, extname, sep } from 'node:path';
 
 // Read-only local hosting check: production must work without root-level assets.
 const root = resolve('dist');
-const tag = process.argv[2] ?? 'v06';
+const tag = process.argv[2] ?? 'v08';
 if (!/^[a-z0-9_-]+$/i.test(tag)) throw new Error('Use an alphanumeric artifact tag');
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.wav': 'audio/wav' };
 const server = createServer(async (request, response) => {
@@ -27,11 +27,15 @@ try {
   page.on('requestfailed', request => failed.push(request.url()));
   page.on('response', response => { if (response.status() >= 400) failed.push(response.url()); });
   await page.goto(`http://127.0.0.1:${server.address().port}/game/`);
-  await page.getByRole('button', { name: /ВОЙТИ В ГОРОД/ }).click();
+  await page.locator('#start-button').click();
+  await page.locator('#dialogue-panel').waitFor({ state: 'visible' });
+  await page.screenshot({ path: `.artifacts/production-${tag}-subpath-dpr2-dialogue.png` });
+  await page.locator('#dialogue-skip').click();
   await page.keyboard.down('KeyD'); await page.waitForTimeout(400); await page.keyboard.up('KeyD');
   await page.keyboard.press('KeyJ', { delay: 20 }); await page.waitForTimeout(600);
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: /НАЧАТЬ ЗАНОВО/ }).click();
+  await page.locator('#dialogue-skip').click();
   const health = await page.locator('#health-label').innerText();
   const isolated = await page.evaluate(() => !('__GAME__' in window));
   if (health !== '100 / 100' || !isolated || errors.length || failed.length) throw new Error(JSON.stringify({ health, isolated, errors, failed }));

@@ -86,12 +86,13 @@ test('light recoil decays, finisher is stronger and enemies use real hurt poses'
     const s = (window as any).__GAME__.scene.getScene('Game'); s.scene.pause();
     const e = s.enemies.getChildren()[0]; e.hp = 500;
     e.receiveHit(16, 1, false); e.renderPose();
-    const frame = e.frame.name, light = e.body.velocity.x;
+    const frame = e.frame.name, texture = e.texture.key, phase = e.state, light = e.body.velocity.x;
     e.updateAi(s.player, 80, true, true); const decayed = e.body.velocity.x;
     e.hitLockMs = 0; e.receiveHit(32, 1, true); const strong = e.body.velocity.x;
-    return { frame, light, decayed, strong };
+    return { frame, texture, phase, light, decayed, strong };
   });
-  expect(result.frame).toBeGreaterThanOrEqual(16);
+  // The dedicated v0.8 street atlas stores its authored recoil at10 (legacy atlas:16–19).
+  expect({ texture: result.texture, frame: result.frame, phase: result.phase }).toEqual({ texture: 'enemy-street-walker', frame: 10, phase: 'stagger' });
   expect(result.decayed).toBeLessThan(result.light);
   expect(result.strong).toBeGreaterThan(result.light * 2);
 });

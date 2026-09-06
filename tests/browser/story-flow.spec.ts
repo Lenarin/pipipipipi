@@ -74,6 +74,8 @@ test('a fresh movement press after focus returns works even when keyup happened 
 });
 
 test('focus loss and Escape preserve dialogue progress, restart invalidates its callback', async ({ page }) => {
+  const lifecycleWarnings: string[] = [];
+  page.on('console', message => { if (message.type() === 'warning' && /Cannot (pause|resume).*Scene/.test(message.text())) lifecycleWarnings.push(message.text()); });
   await start(page);
   const session = await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').campaign.current);
   await page.evaluate(() => window.dispatchEvent(new Event('blur')));
@@ -94,6 +96,7 @@ test('focus loss and Escape preserve dialogue progress, restart invalidates its 
   }, session);
   expect((await state(page)).mode).toBe('dialogue');
   expect((await state(page)).campaign.completedScenes).toEqual([]);
+  expect(lifecycleWarnings).toEqual([]);
 });
 
 test('arena entry freezes projectiles and all world clocks, ducks music, and discards held combat input', async ({ page }) => {
@@ -128,6 +131,66 @@ test('arena entry freezes projectiles and all world clocks, ducks music, and dis
   expect(Math.abs(after.x - before.x)).toBeLessThan(2);
   expect(await page.evaluate(() => { const s = (window as any).__GAME__.scene.getScene('Game'); return [s.attack.state.phase, s.projectiles.countActive(true)]; })).toEqual(['idle', 0]);
   expect(await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').ambience.volume)).toBeCloseTo(0.16);
+});
+
+test('skipping a scene and losing focus in the same frame keeps the native world paused', async ({ page }) => {
+  const warnings: string[] = [];
+  page.on('console', message => { if (message.type() === 'warning' && /Cannot (pause|resume).*Scene/.test(message.text())) warnings.push(message.text()); });
+  await start(page);
+  await page.evaluate(() => {
+    document.querySelector<HTMLButtonElement>('#dialogue-skip')!.click();
+    window.dispatchEvent(new Event('blur'));
+  });
+  await expect(page.getByRole('heading', { name: 'Пауза' })).toBeVisible();
+  await page.waitForTimeout(100);
+  expect(await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').scene.isPaused())).toBe(true);
+  expect(warnings).toEqual([]);
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+  await page.getByRole('button', { name: /ПРОДОЛЖИТЬ/ }).click();
+  await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').scene.isActive())).toBe(true);
+  expect((await state(page)).mode).toBe('playing');
+  expect((await state(page)).campaign.completedScenes).toEqual(['phone-call']);
+});
+
+test('focus loss in the same frame as starting a dialogue also freezes its first line', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('button', { name: 'Начать', exact: true })).toBeEnabled();
+  await page.evaluate(() => {
+    document.querySelector<HTMLButtonElement>('#start-button')!.click();
+    window.dispatchEvent(new Event('blur'));
+  });
+  await expect(page.getByRole('heading', { name: 'Пауза' })).toBeVisible();
+  await page.waitForTimeout(200);
+  const before = await page.locator('#dialogue-text').textContent();
+  await page.waitForTimeout(300);
+  expect(await page.locator('#dialogue-text').textContent()).toBe(before);
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+  await page.getByRole('button', { name: /ПРОДОЛЖИТЬ/ }).click();
+  await expect(page.locator('#dialogue-panel')).toBeVisible();
+  await expect.poll(async () => (await page.locator('#dialogue-text').textContent())!.length).toBeGreaterThan(before!.length);
+});
+
+test('restart before queued dialogue creation preserves only the current paused session', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('button', { name: 'Начать', exact: true })).toBeEnabled();
+  const listeners = () => page.evaluate(() => (window as any).__GAME__.scene.getScene('Dialogue').events.listenerCount('create'));
+  const beforeListeners = await listeners();
+  await page.evaluate(() => {
+    document.querySelector<HTMLButtonElement>('#start-button')!.click();
+    window.dispatchEvent(new Event('blur'));
+    document.querySelector<HTMLButtonElement>('#restart-button')!.click();
+    window.dispatchEvent(new Event('blur'));
+  });
+  await expect(page.getByRole('heading', { name: 'Пауза' })).toBeVisible();
+  await page.waitForTimeout(150);
+  const before = await page.locator('#dialogue-text').textContent();
+  await page.waitForTimeout(300);
+  expect(await page.locator('#dialogue-text').textContent()).toBe(before);
+  expect(await listeners()).toBe(beforeListeners);
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+  await page.getByRole('button', { name: /ПРОДОЛЖИТЬ/ }).click();
+  await page.locator('#dialogue-skip').click();
+  expect((await state(page)).campaign.completedScenes).toEqual(['phone-call']);
 });
 
 test('the arena boss cannot be damaged before its introduction', async ({ page }) => {

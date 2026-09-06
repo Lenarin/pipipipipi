@@ -7,6 +7,52 @@ async function start(page: Page) {
   await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').player.grounded)).toBe(true);
 }
 
+test('Miller retreat remains inside the native world and on the ground at either edge', async ({ page }) => {
+  await start(page);
+  for (const facing of [-1, 1]) {
+    await page.evaluate(side => {
+      const s = (window as any).__GAME__.scene.getScene('Game');
+      s.rules.stage = 2; s.buildStage(2); s.rules.grantImmunity(10000); s.bossActivated = true;
+      [...s.enemies.getChildren()].filter((e: any) => e.kind !== 'boss').forEach((e: any) => e.destroy());
+      const boss = s.enemies.getChildren()[0]; boss.activate(); boss.cooldownMs = 0;
+      const edge = side === 1 ? s.level.width - 30 : 30;
+      boss.body.reset(edge, 281); s.player.body.reset(edge - side * 55, 285.875);
+    }, facing);
+    await page.waitForTimeout(2600);
+    const position = await page.evaluate(() => {
+      const s = (window as any).__GAME__.scene.getScene('Game'), boss = s.enemies.getChildren()[0];
+      return { left: boss.body.left, right: boss.body.right, bottom: boss.body.bottom, width: s.level.width };
+    });
+    expect(position.left).toBeGreaterThanOrEqual(0);
+    expect(position.right).toBeLessThanOrEqual(position.width);
+    expect(position.bottom).toBeLessThanOrEqual(312.1);
+  }
+});
+
+test('native reinforcement knockback cannot push an actor through either world edge', async ({ page }) => {
+  await start(page);
+  for (const side of [-1, 1]) {
+    await page.evaluate(direction => {
+      const s = (window as any).__GAME__.scene.getScene('Game');
+      s.rules.stage = 2; s.buildStage(2); s.rules.grantImmunity(10000);
+      const boss = s.enemies.getChildren().find((e: any) => e.kind === 'boss');
+      boss.receiveHit(190, 1); s.resolveBossReinforcements(boss);
+      const helper = s.enemies.getChildren().find((e: any) => e.id.startsWith('miller-agent-') && e.kind === 'walker');
+      [...s.enemies.getChildren()].filter((e: any) => e !== helper).forEach((e: any) => e.destroy());
+      helper.body.reset(direction === 1 ? s.level.width - 15 : 15, 294.75);
+      helper.receiveKick(direction);
+    }, side);
+    await page.waitForTimeout(350);
+    const position = await page.evaluate(() => {
+      const s = (window as any).__GAME__.scene.getScene('Game'), helper = s.enemies.getChildren()[0];
+      return { left: helper.body.left, right: helper.body.right, bottom: helper.body.bottom, width: s.level.width };
+    });
+    expect(position.left).toBeGreaterThanOrEqual(0);
+    expect(position.right).toBeLessThanOrEqual(position.width);
+    expect(position.bottom).toBeLessThanOrEqual(312.1);
+  }
+});
+
 test('the chief shield blocks only frontal guard hits and drops for recovery', async ({ page }) => {
   await start(page);
   const result = await page.evaluate(async () => {

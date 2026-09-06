@@ -11,7 +11,7 @@ Use **Phaser 4 + TypeScript + Vite**. The user explicitly chose a framework with
 
 ## Scope and current phase
 
-The project is a short browser pixel-art action platformer inspired by Dead Cells. Retain the supplied photograph as the protagonist reference and the gloomy Georgian city setting, with Batumi as the working location. See README.md and the design documents for details.
+The project is a short browser pixel-art action platformer inspired by Dead Cells. Version 0.8 is “Ларик. Пока горячий”: a sunny comic delivery campaign through Batumi, its airport and an American suburb. Retain the supplied photographs as Larik and Mark character references, the existing combat tuning, and the approved seven-scene story. The newer campaign specification supersedes the old gloomy-city direction. See README.md and the design documents for details.
 
 The user explicitly resumed implementation on 2026-09-05. The project now has a Phaser/Vite runtime. Preserve the existing gameplay and use the browser tests when changing engine integration.
 

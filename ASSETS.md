@@ -1,6 +1,17 @@
 # Art and audio provenance
 
-All final assets are local in `public/assets`. Generated using the built-in imagegen tool, 2026-09-05 and 2026-09-06. The supplied personal photograph is a reference only, never included in the web build. Generated art is not claimed to be third-party stock or licensed Dead Cells content.
+All final assets are local in `public/assets`. Generated using the built-in imagegen tool, 2026-09-05 and 2026-09-06. The supplied personal photographs are character references only, never included in the web build. Generated art is not claimed to be third-party stock or licensed Dead Cells content.
+
+## Version 0.8 campaign (2026-09-06)
+
+Exact original requests, generated source paths, selected local assets and reference paths are preserved in [SPRITE-PROMPTS-0.8.json](docs/SPRITE-PROMPTS-0.8.json). Larik retains the original user-photo-derived hero sheets; Mark's portrait and combat body use the second supplied photograph, with the selected portrait simplified to cartoon after feedback. Neither raw photograph is displayed in the runtime.
+
+- `portrait-{larik,nastya,baker,mark,chief,miller}-v8[-keyed]-source.png`: six portraits, three emotions and speaking/blinking poses; deterministic registered native atlases.
+- `boss-{mark,chief,miller}-v8-source.png`: distinct complete boss bodies, commitments and collapse; fixed world body dimensions across poses.
+- `enemy-{street,police,federal}-{walker,spitter,hound}-v8-source.png`: nine faction/role sets.
+- `scene-{batumi,airport,suburb}-v8.png` and `story-v8-source.png`: sunny panoramas and six authored montage panels.
+
+All listed filenames resolve under `public/assets`. Legacy v0.4–0.7 sources and their historical evidence below remain intact. Runtime generation, external image services and new rendering dependencies are absent. Campaign projectile roots are measured from the visible weapon/hand; the hero's v0.7 pipe registration and combat tuning remain unchanged.
 
 | Asset | Role | Import |
 | --- | --- | --- |

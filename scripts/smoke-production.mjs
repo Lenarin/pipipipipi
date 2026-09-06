@@ -1,18 +1,36 @@
 import { chromium } from '@playwright/test';
+import { mkdir } from 'node:fs/promises';
 
 const channel = process.argv[3] ?? 'chromium';
-const tag = process.argv[4] ?? 'v06';
+const tag = process.argv[4] ?? 'v08';
 if (!/^[a-z0-9_-]+$/i.test(tag)) throw new Error('Use an alphanumeric artifact tag');
 if (!['chromium', 'chrome', 'msedge'].includes(channel)) throw new Error('Channel must be chromium, chrome or msedge');
 const browser = await chromium.launch({ headless: true, ...(channel === 'chromium' ? {} : { channel }) });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 const errors = [];
 const failedRequests = [];
+const warnings = [];
 page.on('pageerror', error => errors.push(error.message));
+page.on('console', message => { if (message.type() === 'warning') warnings.push(message.text()); if (message.type() === 'error') errors.push(message.text()); });
 page.on('requestfailed', request => failedRequests.push(request.url()));
 try {
+  await mkdir('.artifacts', { recursive: true });
+  const retryPage = await browser.newPage();
+  let blockPortrait = true;
+  await retryPage.route('**/assets/portrait-miller-v8-keyed-source.png', route => blockPortrait ? route.abort() : route.continue());
+  await retryPage.goto(process.argv[2] ?? 'http://127.0.0.1:4173');
+  await retryPage.getByRole('button', { name: /ПОВТОРИТЬ/ }).waitFor();
+  blockPortrait = false;
+  await retryPage.locator('#start-button').click();
+  await retryPage.getByRole('button', { name: 'Начать', exact: true }).waitFor();
+  await retryPage.locator('#start-button').click();
+  await retryPage.locator('#dialogue-panel').waitFor({ state: 'visible' });
+  await retryPage.close();
   await page.goto(process.argv[2] ?? 'http://127.0.0.1:4173');
-  await page.getByRole('button', { name: /ВОЙТИ В ГОРОД/ }).click();
+  await page.locator('#start-button').click();
+  await page.locator('#dialogue-panel').waitFor({ state: 'visible' });
+  await page.screenshot({ path: `.artifacts/production-${tag}-${channel}-dialogue.png` });
+  await page.locator('#dialogue-skip').click();
   await page.locator('#hud').waitFor({ state: 'visible' });
   if (await page.evaluate(() => '__GAME__' in window)) throw new Error('Production unexpectedly exposes the development scene handle');
   await page.keyboard.down('KeyD');
@@ -24,6 +42,7 @@ try {
   await page.keyboard.press('Escape');
   await page.getByRole('heading', { name: 'Пауза' }).waitFor();
   await page.getByRole('button', { name: /НАЧАТЬ ЗАНОВО/ }).click();
+  await page.locator('#dialogue-skip').click();
   await page.waitForTimeout(150);
   const health = await page.locator('#health-label').innerText();
   if (health !== '100 / 100') throw new Error(`Restart health: ${health}`);
@@ -35,8 +54,8 @@ try {
   await page.screenshot({ path: `.artifacts/production-${tag}-${channel}-fullscreen.png` });
   await page.evaluate(() => document.exitFullscreen());
   await page.screenshot({ path: `.artifacts/production-${tag}-${channel}.png` });
-  if (errors.length || failedRequests.length) throw new Error(JSON.stringify({ errors, failedRequests }));
-  console.log(JSON.stringify({ productionSmoke: 'passed', browser: channel, version: browser.version(), fullscreenCentered: true, start: true, input: true, pause: true, restart: true, health, devHandleAbsent: true, errors, failedRequests }));
+  if (errors.length || failedRequests.length || warnings.some(w => /Cannot (pause|resume).*Scene/.test(w))) throw new Error(JSON.stringify({ errors, failedRequests, warnings }));
+  console.log(JSON.stringify({ productionSmoke: 'passed', browser: channel, version: browser.version(), fullscreenCentered: true, assetErrorRetry: true, start: true, dialogue: true, input: true, pause: true, restart: true, health, devHandleAbsent: true, errors, failedRequests, warnings }));
 } finally {
   await browser.close();
 }

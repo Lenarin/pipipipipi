@@ -58,6 +58,11 @@ export class GameScene extends Phaser.Scene {
   private ambience?: Phaser.Sound.BaseSound;
   private ambienceVolume = 0.16;
   private readonly dialogueCompleteHandler = (session: StorySession) => this.completeDialogue(session);
+  private readonly dialogueCreateHandler = () => {
+    const dialogue = this.scene.get('Dialogue');
+    const session = (dialogue.sys.settings.data as { session?: StorySession }).session;
+    if (session?.token === this.campaign.current?.token && this.rules.mode === 'paused' && this.scene.isActive('Dialogue')) this.scene.manager.pause('Dialogue');
+  };
   private readonly commandHandler = (command: GameCommand) => this.handleCommand(command);
   private readonly focusHandler = () => this.pauseForFocusLoss();
   private readonly visibilityHandler = () => { if (document.hidden) this.pauseForFocusLoss(); };
@@ -80,6 +85,7 @@ export class GameScene extends Phaser.Scene {
     this.physics.pause();
     bridge.on('command', this.commandHandler);
     bridge.on('dialogue-complete', this.dialogueCompleteHandler);
+    this.scene.get('Dialogue').events.on(Phaser.Scenes.Events.CREATE, this.dialogueCreateHandler);
     this.input.keyboard!.on('keydown', this.pressHandler);
     this.input.keyboard!.on('keydown-M', this.muteHandler);
     this.input.on('pointerdown', this.pointerHandler);
@@ -203,7 +209,8 @@ export class GameScene extends Phaser.Scene {
     for (const child of [...this.children.getChildren()]) child.destroy();
     decorateLevel(this, index, this.level.width);
     this.platforms = this.physics.add.staticGroup();
-    this.enemies = this.physics.add.group();
+    // Group defaults overwrite existing body settings when actors (including helpers) join.
+    this.enemies = this.physics.add.group({ collideWorldBounds: true });
     this.projectiles = this.physics.add.group({ allowGravity: false });
     this.addPlatform(this.level.width / 2, 334, this.level.width, 44);
     this.level.platforms.forEach((platform) => this.addPlatform(platform.x, platform.y, platform.width, platform.height ?? 18, true));
@@ -518,12 +525,13 @@ export class GameScene extends Phaser.Scene {
   private freezeWorld(): void {
     this.physics.pause(); this.tweens.pauseAll(); this.time.paused = true;
     this.pauseActorAnimations(); this.clearInput();
-    // Pause the native scene as well: particles and every UpdateList child stop with it.
-    this.scene.pause('Game');
+    // Apply immediately: a skip followed by blur can resume and pause within one frame.
+    // ScenePlugin queues those operations, so querying it between commands sees stale state.
+    if (this.scene.isActive('Game')) this.scene.manager.pause('Game');
   }
 
   private resumeWorld(): void {
-    this.scene.resume('Game');
+    if (this.scene.isPaused('Game')) this.scene.manager.resume('Game');
     this.time.paused = false; this.tweens.resumeAll(); this.physics.resume();
     this.resumeActorAnimations(); this.clearInput();
   }
@@ -538,6 +546,7 @@ export class GameScene extends Phaser.Scene {
     // The AudioParam getter can still report its default while the audio context unlocks.
     if (music) { this.ambienceVolume = music.config.volume ?? 0.16; music.setVolume(this.ambienceVolume * 0.3); }
     this.emitState();
+    // The token-guarded CREATE listener applies a pause requested before this deferred launch.
     this.scene.launch('Dialogue', { session });
   }
 
@@ -636,8 +645,17 @@ export class GameScene extends Phaser.Scene {
       this.campaign.reset(); this.rules.start(); this.resumeWorld(); this.buildStage(0); this.startAmbience();
       this.beginDialogue('phone-call'); return;
     }
-    if (command === 'pause') { if (this.rules.pause()) { this.rules.cancelCacheChoice(); this.cancelPlayerActions(); this.cancelHitStop(); this.freezeWorld(); if (this.scene.isActive('Dialogue')) this.scene.pause('Dialogue'); this.emitState(); } return; }
-    if (command === 'resume') { if (this.rules.resume()) { if (this.rules.mode === 'dialogue') this.scene.resume('Dialogue'); else this.resumeWorld(); this.clearInput(); this.emitState(); } return; }
+    if (command === 'pause') {
+      const wasDialogue = this.rules.mode === 'dialogue';
+      if (this.rules.pause()) {
+        this.rules.cancelCacheChoice(); this.cancelPlayerActions(); this.cancelHitStop(); this.freezeWorld();
+        // A completed Dialogue may still await its queued stop; it no longer owns the pause.
+        if (wasDialogue && this.scene.isActive('Dialogue')) this.scene.manager.pause('Dialogue');
+        this.emitState();
+      }
+      return;
+    }
+    if (command === 'resume') { if (this.rules.resume()) { if (this.rules.mode === 'dialogue') { if (this.scene.isPaused('Dialogue')) this.scene.manager.resume('Dialogue'); } else this.resumeWorld(); this.clearInput(); this.emitState(); } return; }
     if (command === 'heal') { this.tryHeal(); return; }
     if (command === 'cache-damage') { this.closeCacheChoice('damage'); return; }
     if (command === 'cache-health') { this.closeCacheChoice('health'); return; }
@@ -725,6 +743,7 @@ export class GameScene extends Phaser.Scene {
     bridge.off('command', this.commandHandler);
     this.input.keyboard?.off('keydown', this.pressHandler);
     bridge.off('dialogue-complete', this.dialogueCompleteHandler);
+    this.scene.get('Dialogue').events.off(Phaser.Scenes.Events.CREATE, this.dialogueCreateHandler);
     this.scene.stop('Dialogue');
     this.input.keyboard?.off('keydown-M', this.muteHandler);
     this.input.off('pointerdown', this.pointerHandler);
