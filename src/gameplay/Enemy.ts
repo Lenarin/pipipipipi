@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import type { EnemyKind } from '../levels';
+import type { EnemyFaction } from '../levels/Level';
+import type { BossId } from '../story/story';
 import { enemyAttackFrame, bossAttackFrame } from '../game/spriteFrames';
 import {
   attackShapeAt,
@@ -10,9 +12,12 @@ import {
   type EnemyAttackShape,
   type EnemyPhase,
 } from './EnemyAttackCycle';
+import { BossPattern } from './BossPattern';
 
 export type { EnemyAttack, EnemyAttackProfile, EnemyPhase } from './EnemyAttackCycle';
 export type EnemyEvent = EnemyAttackEvent & { enemy: Enemy };
+export interface EnemyOptions { bossId?: BossId; faction?: EnemyFaction; }
+export interface AimTarget { x: number; y: number; }
 
 const stats: Record<EnemyKind, { hp: number; speed: number; awareness: number; texture: string }> = {
   walker: { hp: 42, speed: 66, awareness: 265, texture: 'enemy-full' },
@@ -21,7 +26,9 @@ const stats: Record<EnemyKind, { hp: number; speed: number; awareness: number; t
   boss: { hp: 360, speed: 82, awareness: 460, texture: 'boss-full' },
 };
 
-const profiles: Record<EnemyAttack, EnemyAttackProfile> = {
+type LegacyEnemyAttack = Extract<EnemyAttack, 'melee' | 'projectile' | 'boss-slam' | 'boss-volley'>;
+type LegacyBossAttack = Extract<LegacyEnemyAttack, 'boss-slam' | 'boss-volley'>;
+const profiles: Record<LegacyEnemyAttack, EnemyAttackProfile> = {
   melee: { attack: 'melee', windupMs: 600, activeMs: 150, recoveryMs: 500, damage: 14, reach: 24, thickness: 30, motion: 'thrust', speed: 105 },
   projectile: { attack: 'projectile', windupMs: 620, activeMs: 110, recoveryMs: 520, damage: 12, reach: 255, thickness: 20, motion: 'cast' },
   'boss-slam': { attack: 'boss-slam', windupMs: 650, activeMs: 230, recoveryMs: 650, damage: 24, reach: 132, thickness: 62, motion: 'slam', speed: 65 },
@@ -36,13 +43,17 @@ const houndProfile: EnemyAttackProfile = {
 const names: Record<EnemyKind, string> = {
   walker: 'Должник', spitter: 'Домовой чат', hound: 'Просроченный пёс', boss: 'Старший по порту',
 };
+const bossNames: Readonly<Record<BossId, string>> = { mark: 'Марк', chief: 'Начальник полиции', miller: 'Миллер' };
 
 /** Enemy decisions and attack state. Arcade Physics still owns body movement and contacts. */
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
   readonly id: string;
   readonly kind: EnemyKind;
+  readonly bossId?: BossId;
+  readonly faction?: EnemyFaction;
   readonly maxHp: number;
   readonly attackCycle = new EnemyAttackCycle();
+  aimTarget?: Readonly<AimTarget>;
   hp: number;
   state: EnemyPhase = 'idle';
   engaged = false;
@@ -53,12 +64,17 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private staggerDuration = 180;
   private recoilVelocity = 0;
   private healthBarMs = 0;
-  private nextBossAttack: EnemyAttack = 'boss-slam';
+  private nextBossAttack: LegacyBossAttack = 'boss-slam';
+  private readonly bossPattern?: BossPattern;
 
-  constructor(scene: Phaser.Scene, id: string, kind: EnemyKind, x: number, y: number) {
-    super(scene, x, y, stats[kind].texture);
+  constructor(scene: Phaser.Scene, id: string, kind: EnemyKind, x: number, y: number, options: EnemyOptions = {}) {
+    const bossTexture = options.bossId ? `boss-${options.bossId}` : '';
+    super(scene, x, y, kind === 'boss' && bossTexture && scene.textures.exists(bossTexture) ? bossTexture : stats[kind].texture);
     this.id = id;
     this.kind = kind;
+    this.bossId = kind === 'boss' ? options.bossId : undefined;
+    this.faction = options.faction;
+    this.bossPattern = this.bossId ? new BossPattern(this.bossId) : undefined;
     this.maxHp = stats[kind].hp;
     this.hp = this.maxHp;
     scene.add.existing(this);
@@ -101,7 +117,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       const events = this.attackCycle.advance(delta);
       this.state = this.attackCycle.state.phase;
       this.applyAttackMotion(body);
-      if (events.some((event) => event.type === 'idle')) this.cooldownMs = this.enraged ? 430 : 720;
+      if (events.some((event) => event.type === 'idle')) {
+        this.cooldownMs = this.enraged ? 430 : 720;
+        this.aimTarget = undefined;
+      }
       return events.map((event) => ({ ...event, enemy: this }));
     }
 
@@ -109,11 +128,12 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.setScale(this.kind === 'boss' ? 1 : 1.15);
     if (Math.abs(player.y - this.y) > 68) { body.setVelocityX(0); return []; }
 
-    const inAttackRange = this.kind === 'spitter' ? distance < 260 : this.kind === 'boss' ? distance < 125 : this.kind === 'hound' ? distance < 76 : distance < 58;
+    const bossRange = this.bossId === 'miller' ? 340 : this.bossId === 'mark' ? 170 : this.bossId === 'chief' ? 145 : 125;
+    const inAttackRange = this.kind === 'spitter' ? distance < 260 : this.kind === 'boss' ? distance < bossRange : this.kind === 'hound' ? distance < 76 : distance < 58;
     if (inAttackRange && this.cooldownMs <= 0 && canStartAttack) {
-      const attack = this.chooseAttack();
-      const baseProfile = this.kind === 'hound' ? houndProfile : profiles[attack];
+      const baseProfile = this.chooseProfile();
       const profile = this.enraged ? { ...baseProfile, windupMs: Math.max(520, baseProfile.windupMs - 100) } : baseProfile;
+      this.aimTarget = this.bossId === 'miller' ? Object.freeze({ x: player.x, y: player.y }) : undefined;
       this.attackCycle.start(profile, direction);
       this.state = 'windup';
       this.setFlipX(direction < 0);
@@ -131,12 +151,14 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   activate(): void { this.engaged = true; this.healthBarMs = 1100; }
   consumeChargeHit(): boolean { return this.kind === 'hound' && this.attackCycle.consumeHit(); }
   consumeAttackHit(): boolean { return this.attackCycle.consumeHit(); }
+  consumeReinforcements(): boolean { return this.bossPattern?.consumeReinforcements() ?? false; }
 
   /** Clears terminal-scene action state. Pause deliberately does not call this. */
   cancelActions(): void {
     this.attackCycle.cancel();
     this.state = 'idle';
     this.staggerMs = 0;
+    this.aimTarget = undefined;
     this.cooldownMs = Math.max(this.cooldownMs, 720);
     (this.body as Phaser.Physics.Arcade.Body).setVelocityX(0);
     this.setAngle(0).setScale(this.kind === 'boss' ? 1 : 1.15);
@@ -144,8 +166,14 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   receiveHit(damage: number, direction: 1 | -1 = 1, finisher = false): boolean {
     if (this.hitLockMs > 0 || damage <= 0) return false;
+    if (this.isBlocking && direction === -this.attackFacing) {
+      this.healthBarMs = 1100;
+      return false;
+    }
+    const previousHp = this.hp;
     this.hitLockMs = 90;
     this.hp = Math.max(0, this.hp - damage);
+    this.bossPattern?.observeHealth(previousHp, this.hp, this.maxHp);
     this.healthBarMs = 1100;
     this.setTint(0xffefd6).setTintMode(Phaser.TintModes.FILL);
     this.scene.time.delayedCall(70, () => this.active && this.clearTint().setTintMode(Phaser.TintModes.MULTIPLY));
@@ -182,8 +210,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   get defeated(): boolean { return this.hp <= 0; }
   get isTelegraphing(): boolean { return this.state === 'windup'; }
   get isAttacking(): boolean { return this.state === 'windup' || this.state === 'active'; }
+  get isBlocking(): boolean { return this.bossPattern?.isBlocking(this.state, this.attackCycle.state.attack) ?? false; }
   get showsHealthBar(): boolean { return this.healthBarMs > 0 || this.attackCycle.state.phase !== 'idle'; }
-  get displayName(): string { return names[this.kind]; }
+  get displayName(): string { return this.bossId ? bossNames[this.bossId] : names[this.kind]; }
   get attackFacing(): 1 | -1 { return this.attackCycle.state.facing; }
   get attackProgress(): number { return this.attackCycle.progress; }
   get attackHitAvailable(): boolean { return this.attackCycle.canHit; }
@@ -213,16 +242,20 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     const profile = this.attackCycle.profile;
     if (!profile) return;
     this.setFlipX(this.attackFacing < 0).setAngle(0);
-    body.setVelocityX(phase === 'active' ? this.attackFacing * (profile.speed ?? 0) : 0);
+    if (phase === 'active') body.setVelocityX(this.attackFacing * (profile.speed ?? 0));
+    else if (phase === 'recovery') body.setVelocityX(-this.attackFacing * (profile.recoverySpeed ?? 0));
+    else body.setVelocityX(0);
   }
 
-  private chooseAttack(): EnemyAttack {
-    if (this.kind === 'spitter') return 'projectile';
+  private chooseProfile(): EnemyAttackProfile {
+    if (this.bossPattern) return this.bossPattern.nextProfile();
+    if (this.kind === 'hound') return houndProfile;
+    if (this.kind === 'spitter') return profiles.projectile;
     if (this.kind === 'boss') {
       const attack = this.nextBossAttack;
       this.nextBossAttack = attack === 'boss-slam' ? 'boss-volley' : 'boss-slam';
-      return attack;
+      return profiles[attack];
     }
-    return 'melee';
+    return profiles.melee;
   }
 }

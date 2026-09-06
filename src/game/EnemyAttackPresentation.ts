@@ -34,6 +34,10 @@ export class EnemyAttackPresentation {
       const edgeX = facing === 1 ? shape.x + closing : shape.x + shape.width - closing;
       this.footprint.lineStyle(2, 0xf2c677, 0.95).lineBetween(edgeX, shape.y, edgeX, shape.y + shape.height);
       this.drawDirectionalNotches(shape.x, shape.y, shape.width, shape.height, facing, AMBER, 0.85);
+      if (enemy.bossId === 'miller' && enemy.aimTarget) {
+        this.footprint.lineStyle(1.5, 0xf2c677, 0.82);
+        this.footprint.lineBetween(enemy.x, enemy.y - 6, enemy.aimTarget.x, enemy.aimTarget.y);
+      }
     } else if (phase === 'active') {
       this.footprint.fillStyle(DANGER, 0.16).fillRect(shape.x, shape.y, shape.width, shape.height);
       this.drawCorners(shape.x, shape.y, shape.width, shape.height, 0xe07a62, 0.96, 2);
@@ -58,6 +62,13 @@ export class EnemyAttackPresentation {
     }
 
     this.drawTimeCue(enemy, phase, progress);
+  }
+
+  showBlock(enemy: Enemy): void {
+    const flash = this.scene.add.graphics({ x: enemy.x + enemy.attackFacing * 24, y: enemy.y - 6 }).setDepth(16).setName('boss-block-cue');
+    flash.lineStyle(3, 0xbde8ef, 0.95).strokeCircle(0, 0, 9);
+    flash.lineStyle(1, 0xffffff, 0.9).lineBetween(-4, -7, 5, 7);
+    this.scene.tweens.add({ targets: flash, scale: 1.35, alpha: 0, duration: 180, onComplete: () => flash.destroy() });
   }
 
   destroy(): void {

@@ -306,7 +306,9 @@ export class GameScene extends Phaser.Scene {
       const body = enemy.body as Phaser.Physics.Arcade.Body;
       const point = this.combatEffects.strikeContact(new Phaser.Geom.Rectangle(body.x, body.y, body.width, body.height));
       if (!point) continue;
-      if (this.rules.hitTarget(this.activeSwing, enemy.id) && enemy.receiveHit(damage, facing, this.attack.state.step === 3)) {
+      if (!this.rules.hitTarget(this.activeSwing, enemy.id)) continue;
+      const blocked = enemy.isBlocking && facing === -enemy.attackFacing;
+      if (enemy.receiveHit(damage, facing, this.attack.state.step === 3)) {
         const x = Phaser.Math.Clamp(point.x, body.x, body.right), y = Phaser.Math.Clamp(point.y, body.y, body.bottom);
         this.combatEffects.confirmHit(x, y, damage, this.attack.state.step === 3, facing, this.shakeEnabled);
         if (this.stoppedSwing !== this.activeSwing) {
@@ -314,7 +316,11 @@ export class GameScene extends Phaser.Scene {
           this.combatAudio.impact(this.attack.state.step);
           this.beginHitStop([50, 55, 85][this.attack.state.step - 1]);
         }
+        this.resolveBossReinforcements(enemy);
         this.damageEnemy(enemy, damage);
+      } else if (blocked) {
+        this.enemyPresentations.get(enemy.id)?.showBlock(enemy);
+        if (this.cache.audio.exists('dash')) this.sound.play('dash', { volume: 0.24, rate: 0.62 });
       }
     }
   }
@@ -336,10 +342,11 @@ export class GameScene extends Phaser.Scene {
     if (event.type !== 'active') return;
     const { enemy, attack, facing } = event;
     if (!enemy.active) return;
-    if (attack === 'projectile' || attack === 'boss-volley') {
-      const count = attack === 'boss-volley' ? 3 : 1;
+    if (attack === 'projectile' || attack === 'boss-volley' || attack === 'miller-volley') {
+      const heavy = attack === 'boss-volley' || attack === 'miller-volley';
+      const count = heavy ? 3 : 1;
       const hitToken: ProjectileAttackToken = { consumed: false };
-      for (let index = 0; index < count; index++) this.fireProjectile(enemy, index - (count - 1) / 2, attack === 'boss-volley', facing, hitToken);
+      for (let index = 0; index < count; index++) this.fireProjectile(enemy, index - (count - 1) / 2, heavy, facing, hitToken, attack === 'miller-volley' ? enemy.aimTarget : undefined);
     }
   }
 
@@ -357,12 +364,29 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private fireProjectile(enemy: Enemy, spread: number, heavy: boolean, facing: 1 | -1, hitToken: ProjectileAttackToken): void {
+  private resolveBossReinforcements(enemy: Enemy): void {
+    if (!enemy.consumeReinforcements()) return;
+    const positions = [
+      { id: 'miller-agent-1', kind: 'walker' as const, x: enemy.x - 150 },
+      { id: 'miller-agent-2', kind: 'spitter' as const, x: enemy.x + 150 },
+    ];
+    for (const reinforcement of positions) {
+      const helper = new Enemy(this, reinforcement.id, reinforcement.kind, Phaser.Math.Clamp(reinforcement.x, 70, this.level.width - 70), 276, { faction: 'federal' });
+      helper.activate();
+      this.enemies.add(helper);
+      this.enemyPresentations.set(helper.id, new EnemyAttackPresentation(this));
+    }
+  }
+
+  private fireProjectile(enemy: Enemy, spread: number, heavy: boolean, facing: 1 | -1, hitToken: ProjectileAttackToken, aimTarget?: Readonly<{ x: number; y: number }>): void {
     const shot = this.physics.add.image(enemy.x, enemy.y - 5, 'projectile');
     this.projectiles.add(shot);
-    shot.setData('damage', heavy ? 18 : 12);
+    shot.setData('damage', enemy.attackProfile?.damage ?? (heavy ? 18 : 12));
     shot.setData('attackHitToken', hitToken);
-    shot.setVelocity(facing * (heavy ? 245 : 230), spread * 75);
+    if (aimTarget) {
+      const angle = Math.atan2(aimTarget.y - (enemy.y - 5), aimTarget.x - enemy.x) + spread * 0.11;
+      shot.setVelocity(Math.cos(angle) * 260, Math.sin(angle) * 260);
+    } else shot.setVelocity(facing * (heavy ? 245 : 230), spread * 75);
     shot.setDepth(6);
   }
 

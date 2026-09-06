@@ -1,5 +1,6 @@
 export type EnemyPhase = 'idle' | 'windup' | 'active' | 'recovery' | 'stagger';
-export type EnemyAttack = 'melee' | 'projectile' | 'boss-slam' | 'boss-volley';
+export type EnemyAttack = 'melee' | 'projectile' | 'boss-slam' | 'boss-volley'
+  | 'mark-lunge' | 'mark-heavy' | 'chief-baton' | 'chief-charge' | 'miller-volley';
 export type EnemyAttackMotion = 'thrust' | 'charge' | 'slam' | 'cast';
 
 export interface EnemyAttackProfile {
@@ -12,6 +13,7 @@ export interface EnemyAttackProfile {
   thickness: number;
   motion: EnemyAttackMotion;
   speed?: number;
+  recoverySpeed?: number;
 }
 
 export interface EnemyAttackState {
