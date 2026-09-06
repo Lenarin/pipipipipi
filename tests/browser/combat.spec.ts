@@ -123,15 +123,15 @@ test('the rendered strike segment follows the player and only hits a body it act
   expect(geometry!.afterHit).toBeLessThan(geometry!.beforeHp);
 });
 
-test('windup movement is reduced, active movement lunges, and stagger survives before AI recovery', async ({ page }) => {
+test('attack movement stays controlled through contact and stagger survives before AI recovery', async ({ page }) => {
   await start(page);
   const movement = await page.evaluate(() => {
     const scene = (window as any).__GAME__.scene.getScene('Game');
     const player = scene.player; const startX = player.x;
     scene.attack.request(1); scene.player.beginAttack();
-    scene.attack.advance(32); player.updateMovement({ left: false, right: true, jumpPressed: false, dashPressed: false }, 32, true, { ...scene.attack.state, lunge: scene.attack.currentProfile.lunge, progress: scene.attack.phaseProgress });
+    scene.attack.advance(32); player.updateMovement({ left: false, right: true, jumpPressed: false, dashPressed: false }, 32, true, { ...scene.attack.state, progress: scene.attack.phaseProgress });
     const windupVelocity = player.body.velocity.x;
-    scene.attack.advance(88); player.updateMovement({ left: false, right: true, jumpPressed: false, dashPressed: false }, 33, true, { ...scene.attack.state, lunge: scene.attack.currentProfile.lunge, progress: scene.attack.phaseProgress });
+    scene.attack.advance(88); player.updateMovement({ left: false, right: true, jumpPressed: false, dashPressed: false }, 33, true, { ...scene.attack.state, progress: scene.attack.phaseProgress });
     const activeVelocity = player.body.velocity.x;
     const enemy = scene.enemies.getChildren().find((item: any) => item.id === 'yard-walker-1');
     enemy.receiveHit(1, 1);
@@ -143,7 +143,7 @@ test('windup movement is reduced, active movement lunges, and stagger survives b
     return { startX, windupVelocity, activeVelocity, stagger, sustained, recovered: enemy.state };
   });
   expect(Math.abs(movement.windupVelocity)).toBeLessThan(100);
-  expect(movement.activeVelocity).toBeGreaterThan(movement.windupVelocity);
+  expect(movement.activeVelocity).toBe(movement.windupVelocity);
   expect(movement.stagger).toMatchObject({ state: 'stagger' });
   expect(movement.stagger.velocity).toBeGreaterThan(0);
   expect(movement.sustained).toMatchObject({ state: 'stagger' });

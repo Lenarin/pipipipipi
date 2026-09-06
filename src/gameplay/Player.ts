@@ -1,10 +1,14 @@
 import Phaser from 'phaser';
-import { attackVelocity } from './Combat';
 import { pipeFrame, HERO_LAYOUT } from '../game/spriteFrames';
+
+const WALK_SPEED = 150;
+const ATTACK_WALK_SPEED = 90;
+const DASH_SPEED = 380;
+const DASH_DURATION_MS = 180;
 
 export interface PlayerInput { left: boolean; right: boolean; jumpPressed: boolean; jumpHeld?: boolean; dashPressed: boolean; }
 export interface PlayerStep { dashed: boolean; dashEnded: boolean; jumped: boolean; }
-export interface PlayerCombatState { phase: 'idle' | 'windup' | 'active' | 'recovery'; facing: 1 | -1; lunge: number; progress: number; step?: number; }
+export interface PlayerCombatState { phase: 'idle' | 'windup' | 'active' | 'recovery'; facing: 1 | -1; progress: number; step?: number; }
 
 /** Sprite and movement affordances; damage, cooldowns and run status live in RunRules. */
 export class Player extends Phaser.Physics.Arcade.Sprite {
@@ -72,7 +76,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.dashMs > 0) {
       this.dashMs = Math.max(0, this.dashMs - delta);
       this.facing = this.dashFacing;
-      body.setVelocityX(this.dashFacing * 510);
+      body.setVelocityX(this.dashMs > 0 ? this.dashFacing * DASH_SPEED : direction * WALK_SPEED);
       if (this.dashMs === 0) {
         dashEnded = true;
         this.setAlpha(1).clearTint();
@@ -80,15 +84,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     } else if (input.dashPressed && allowDash) {
       this.dashFacing = direction === 0 ? this.facing : direction > 0 ? 1 : -1;
       this.facing = this.dashFacing;
-      this.dashMs = 150;
-      body.setVelocityX(this.dashFacing * 510);
+      this.dashMs = DASH_DURATION_MS;
+      body.setVelocityX(this.dashFacing * DASH_SPEED);
       this.setAlpha(0.72).setTint(0xbce8dc);
       dashed = true;
     } else {
       if (combat.phase !== 'idle') this.facing = combat.facing;
       else if (direction !== 0) this.facing = direction > 0 ? 1 : -1;
-      body.setVelocityX(combat.phase === 'idle' ? direction * 185
-        : attackVelocity(combat.lunge * 5, combat.phase, combat.progress, combat.facing, direction));
+      // Weight belongs to the pose and contact. Position always belongs to held input.
+      body.setVelocityX(direction * (combat.phase === 'idle' ? WALK_SPEED : ATTACK_WALK_SPEED));
     }
 
     this.setFlipX(this.facing < 0);
@@ -105,7 +109,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   get isDashing(): boolean { return this.dashMs > 0; }
   get grounded(): boolean { const body = this.body as Phaser.Physics.Arcade.Body; return body.blocked.down || body.touching.down; }
   beginAttack(): void { this.attackPhase = 'windup'; this.showPipePose(0); }
-  get dashProgress(): number { return 1 - this.dashMs / 150; }
+  get dashProgress(): number { return 1 - this.dashMs / DASH_DURATION_MS; }
   get isHurt(): boolean { return this.hurtMs > 0; }
   showPipePose(frame: number): void { this.anims.stop(); this.setFrame(40 + frame); }
   showCombatPose(frame: number): void { this.anims.stop(); this.setFrame(8 + frame); }

@@ -26,7 +26,7 @@ async function playerState(page: import('@playwright/test').Page) {
 test('movement, double jump, landing and dash use the real Arcade body', async ({ page }) => {
   await start(page);
   await page.keyboard.down('KeyD'); await page.waitForTimeout(500); await page.keyboard.up('KeyD');
-  expect((await playerState(page)).x).toBeGreaterThan(185);
+  expect((await playerState(page)).x).toBeGreaterThan(165);
   await page.keyboard.press('Space', { delay: 40 }); await page.waitForTimeout(120);
   const first = await playerState(page); expect(first.y).toBeLessThan(275);
   await page.keyboard.press('Space', { delay: 40 }); await page.waitForTimeout(120);
@@ -63,13 +63,17 @@ test('upper courtyard platform and its health cache are reachable by jumping', a
   await start(page);
   // Immunity isolates route validation; the entire street-to-balcony traversal uses real input.
   await page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').rules.grantImmunity(10000));
-  await page.keyboard.down('KeyD'); await page.waitForTimeout(2700); await page.keyboard.up('KeyD');
+  await page.keyboard.down('KeyD');
+  await expect.poll(async () => (await playerState(page)).x, { intervals:[20] }).toBeGreaterThan(607);
+  await page.keyboard.up('KeyD');
   await page.keyboard.down('KeyD');
   await page.keyboard.press('Space', { delay: 40 }); await page.waitForTimeout(200);
   await page.keyboard.press('Space', { delay: 40 }); await page.waitForTimeout(310);
   await page.keyboard.up('KeyD');
   await expect.poll(async () => { const p = await playerState(page); return p.grounded && p.y < 215; }, { timeout: 2500 }).toBe(true);
-  await page.keyboard.down('KeyD'); await page.waitForTimeout(330); await page.keyboard.up('KeyD');
+  await page.keyboard.down('KeyD');
+  await expect.poll(async () => (await playerState(page)).x, { intervals:[20] }).toBeGreaterThan(780);
+  await page.keyboard.up('KeyD');
   await page.keyboard.press('KeyE', { delay: 40 });
   await page.getByRole('button', { name: /ЗДОРОВЬЕ \+20/ }).click();
   await expect(page.locator('#health-label')).toHaveText('120 / 120');

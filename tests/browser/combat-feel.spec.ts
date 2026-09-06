@@ -32,7 +32,7 @@ test('a stationary full combo connects all three hits without driving through it
     await expect.poll(() => page.evaluate(n => { const s=(window as any).__GAME__.scene.getScene('Game'); return s.attack.state.step === n && s.attack.state.phase === 'recovery'; }, step), { intervals: [15] }).toBe(true);
     await page.keyboard.press('KeyJ', { delay: 30 });
   }
-  await page.waitForTimeout(850);
+  await expect.poll(() => page.evaluate(() => (window as any).__GAME__.scene.getScene('Game').attack.state.phase), { intervals:[15] }).toBe('idle');
   const state = await page.evaluate(() => { const s=(window as any).__GAME__.scene.getScene('Game'), e=s.enemies.getChildren()[0]; return { hp:e.hp, gap:e.x-s.player.x, phase:s.attack.state.phase }; });
   expect(state.hp).toBe(136); expect(state.gap).toBeGreaterThan(15); expect(state.phase).toBe('idle');
 });
@@ -41,7 +41,7 @@ test('pipe preparation/contact/settling contain full-body transitions and miss t
   const result = await page.evaluate(() => {
     const s = (window as any).__GAME__.scene.getScene('Game'); s.scene.pause();
     s.attack.request(1); const frames = [], trails = [];
-    for (const dt of [0, 30, 35, 35, 45, 35, 60, 60]) {
+    for (const dt of [0, 35, 40, 45, 55, 45, 80, 70]) {
       s.attack.advance(dt); s.combatEffects.update(s.player, s.attack.state, s.attack.phaseProgress, s.attack.currentProfile);
       frames.push(s.player.frame.name); trails.push(s.combatEffects.trail?.visible ?? false);
     }
@@ -56,7 +56,7 @@ test('contact feedback is localized and group hits spend hitstop only once', asy
   const result = await page.evaluate(() => {
     const s = (window as any).__GAME__.scene.getScene('Game'); s.scene.pause();
     s.player.body.reset(400, 285); s.player.body.updateFromGameObject();
-    s.attack.request(1); s.attack.advance(100); s.resolveAttackEvents([{ type: 'active', step: 1, facing: 1 }]);
+    s.attack.request(1); s.resolveAttackEvents(s.attack.advance(s.attack.currentProfile.windupMs));
     s.combatEffects.update(s.player, s.attack.state, 0, s.attack.currentProfile);
     const line = s.combatEffects.strikeSegment;
     const enemies = s.enemies.getChildren().slice(0, 2);

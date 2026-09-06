@@ -7,7 +7,7 @@ describe('sprite-driven pipe combat', () => {
     expect(PIPE_ATTACKS.map(p => p.damageMultiplier)).toEqual([1, 1, 2]);
     expect(PIPE_ATTACKS[2].recoveryMs).toBeGreaterThan(PIPE_ATTACKS[1].recoveryMs);
     const chain = new AttackChain();
-    chain.request(1); chain.advance(220); chain.request(1); chain.advance(110); chain.advance(250); chain.request(1); chain.advance(120);
+    chain.request(1); chain.advance(220); chain.request(1); chain.advance(200); chain.advance(300); chain.request(1); chain.advance(160);
     expect(chain.currentProfile?.damageMultiplier).toBe(2);
     expect(chain.request(1)).toBe(false);
   });

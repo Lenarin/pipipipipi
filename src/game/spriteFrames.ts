@@ -42,6 +42,23 @@ export const ENEMY_RECOIL_POSES: readonly SpritePose[] = [
   [173,1164], [466,1161], [781,1161], [1093,1161],
 ].map(([anchorX, feetY], i) => ({ anchorX, feetY, scale: i < 4 ? 36 / 330 : i < 8 ? 34 / 345 : 24 / 160 }));
 
+// v0.6: four anticipation, two contact and two recovery poses per ordinary enemy.
+// Preserve standing scale within each creature; never enlarge a compressed pose.
+export const ENEMY_ATTACK_POSES: readonly SpritePose[] = [
+  [172,271], [466,271], [766,271], [1045,271],
+  [151,508], [450,508], [756,508], [1033,508],
+  [157,759], [463,759], [760,759], [1039,759],
+  [175,964], [459,964], [758,964], [1035,964],
+  [159,1100], [460,1100], [773,1100], [1047,1100],
+  [159,1230], [469,1230], [788,1230], [1075,1230],
+].map(([anchorX, feetY], i) => ({ anchorX, feetY, scale: i < 8 ? 36 / 224 : i < 16 ? 34 / 216 : 24 / 101 }));
+
+export function enemyAttackFrame(kind: 'walker' | 'spitter' | 'hound', phase: 'windup' | 'active' | 'recovery', progress: number): number {
+  const p = Math.max(0, Math.min(1, progress));
+  const offset = phase === 'windup' ? Math.min(3, Math.floor(p * 4)) : phase === 'active' ? (p < .5 ? 4 : 5) : p < .45 ? 6 : 7;
+  return 28 + (kind === 'walker' ? 0 : kind === 'spitter' ? 8 : 16) + offset;
+}
+
 export function pipeFrame(step: number, phase: AttackPhase, progress: number): number {
   const p = Math.max(0, Math.min(1, progress));
   const offset = phase === 'windup' ? (p < .25 ? 0 : p < .6 ? 1 : 2)

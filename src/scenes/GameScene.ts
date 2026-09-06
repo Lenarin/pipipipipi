@@ -4,6 +4,7 @@ import { decorateLevel, drawPlatform } from '../game/art';
 import { CombatAudio } from '../game/CombatAudio';
 import { CombatEffects } from '../game/CombatEffects';
 import { EnemyAttackPresentation } from '../game/EnemyAttackPresentation';
+import { GroundEffects } from '../game/GroundEffects';
 import { KickAction } from '../gameplay/ActionState';
 import { AttackChain } from '../gameplay/Combat';
 import { Enemy, type EnemyEvent } from '../gameplay/Enemy';
@@ -36,6 +37,7 @@ export class GameScene extends Phaser.Scene {
   private activeSwing: number | null = null;
   private combatEffects!: CombatEffects;
   private combatAudio!: CombatAudio;
+  private groundEffects!: GroundEffects;
   private readonly enemyPresentations = new Map<string, EnemyAttackPresentation>();
   private hitStopActive = false;
   private stoppedSwing: number | null = null;
@@ -82,7 +84,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(_time: number, rawDelta: number): void {
-    if (this.rules.mode !== 'playing' || this.rules.cacheChoiceOpen) return;
+    if (this.rules.mode !== 'playing' || this.rules.cacheChoiceOpen) {
+      this.cameras.main.setLerp(0, 0);
+      return;
+    }
     const movementFacing = this.movementIntent();
     const attackPressed = this.consumePress('KeyJ');
     const jumpPressedNow = this.consumePress('ArrowUp', 'Space', 'KeyW');
@@ -105,6 +110,8 @@ export class GameScene extends Phaser.Scene {
       this.resumeActorAnimations();
     }
     const delta = Math.min(Math.max(rawDelta, 0), 50);
+    // Phaser owns following; a time-based coefficient avoids display-rate-dependent lag.
+    this.cameras.main.setLerp(1 - Math.exp(-delta / 55), 0);
     this.rules.tick(delta);
     const dashReady = this.dashBufferMs > 0 && !this.kick.active && this.rules.useCooldown('dash', 750);
     if (dashReady) { this.dashBufferMs = 0; this.cancelAttack(); }
@@ -118,8 +125,9 @@ export class GameScene extends Phaser.Scene {
       jumpPressed: bufferedJump,
       jumpHeld: this.cursors.up.isDown || this.keys.jump.isDown || this.keys.jumpAlt.isDown,
       dashPressed: dashReady,
-    }, delta, true, { ...this.attack.state, lunge: this.attack.currentProfile?.lunge ?? 0, progress: this.attack.phaseProgress });
+    }, delta, true, { ...this.attack.state, progress: this.attack.phaseProgress });
     this.limitAttackAdvance(delta);
+    this.groundEffects.update(this.player, this.level, this.attack.state.phase === 'idle' && !this.kick.active && !this.rules.healing);
     if (step.jumped) this.playSound('jump');
     if (step.dashed) { this.rules.grantImmunity(190); this.combatEffects.dashBurst(this.player.x, this.player.y, this.player.facing); this.playSound('dash'); }
     if (step.dashEnded) this.combatEffects.dashBurst(this.player.x, this.player.y, this.player.facing, true);
@@ -173,6 +181,7 @@ export class GameScene extends Phaser.Scene {
     this.enemies?.destroy(true, true);
     this.projectiles?.destroy(true, true);
     this.combatEffects?.destroy();
+    this.groundEffects?.destroy();
     this.enemyPresentations.forEach((presentation) => presentation.destroy());
     this.enemyPresentations.clear();
     this.children.removeAll(true);
@@ -185,13 +194,14 @@ export class GameScene extends Phaser.Scene {
     this.player = new Player(this, 110, 265);
     this.combatEffects = new CombatEffects(this);
     this.combatAudio = new CombatAudio(this);
+    this.groundEffects = new GroundEffects(this);
     this.player.play('hero-idle');
     if (this.rules.mode === 'title') {
       this.player.setPosition(485, 267).setScale(95 / 80);
       this.cameras.main.stopFollow();
       this.cameras.main.setScroll(0, 0);
     } else {
-      this.cameras.main.startFollow(this.player, true, 0.11, 0);
+      this.cameras.main.startFollow(this.player, true, 0.26, 0);
       this.cameras.main.setScroll(0, 30);
       this.cameras.main.setDeadzone(120, 0);
     }
@@ -380,6 +390,7 @@ export class GameScene extends Phaser.Scene {
     if (this.rules.mode !== 'playing') return;
     this.hitStopTimer?.remove(false);
     this.hitStopActive = true;
+    this.cameras.main.setLerp(0, 0);
     this.physics.pause();
     this.tweens.pauseAll();
     this.pauseActorAnimations();
@@ -588,6 +599,7 @@ export class GameScene extends Phaser.Scene {
   private emitState(): void { bridge.emit('state', this.snapshot()); }
   private cleanUp(): void {
     this.cancelAttack(); this.cancelHitStop(); this.combatEffects?.destroy();
+    this.groundEffects?.destroy();
     this.enemyPresentations.forEach((presentation) => presentation.destroy());
     this.enemyPresentations.clear();
     bridge.off('command', this.commandHandler);
