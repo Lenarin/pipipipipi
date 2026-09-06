@@ -122,6 +122,11 @@ export function decorateArchitecture(scene: Phaser.Scene, stage: number, width: 
       g.fillStyle(0x334a50).fillCircle(x + 10, 308, 4).fillCircle(x + 49, 308, 4);
     }
   } else {
+    // Required keyed raster scenery; it has no Arcade body or landable top edge.
+    const wreck = scene.add.image(160, 312, 'landmark-wreck').setOrigin(.5, 1).setDepth(-5).setName('landmark-wreck');
+    wreck.setScale(220 / wreck.width);
+    const debris = scene.add.image(243, 312, 'landmark-wreck-debris').setOrigin(.5, 1).setDepth(-4).setName('landmark-wreck-debris');
+    debris.setScale(40 / debris.width);
     for (let x = 20; x < width; x += 430) {
       g.fillStyle(0x738847).fillRect(x, 308, 132, 4);
       for (let px = x; px < x + 130; px += 13) g.fillStyle(0xf5e3bc).fillRect(px, 286, 7, 26).fillTriangle(px, 286, px + 3, 281, px + 7, 286);

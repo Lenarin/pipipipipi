@@ -10,8 +10,9 @@ Exact original requests, generated source paths, selected local assets and refer
 - `boss-{mark,chief,miller}-v8-source.png`: distinct complete boss bodies, commitments and collapse; fixed world body dimensions across poses.
 - `enemy-{street,police,federal}-{walker,spitter,hound}-v8-source.png`: nine faction/role sets.
 - `scene-{batumi,airport,suburb}-v8.png` and `story-v8-source.png`: sunny panoramas and six authored montage panels.
+- `prop-plane-wreck-v8-source.png`: required suburb opening wreck, derived from the selected montage's crashed jet using built-in imagegen. The final 1536×1024 source has solid magenta after a background-only cleanup; the existing keyer produces real runtime alpha. The main wreck (1349×658) and detached wing (303×99) are registered by connected-component masks, displayed at widths 220/40 with bottom anchors at (160,312)/(243,312), behind actors, without Arcade bodies. Raw source SHA256: `E808DFF28746375DE8810263ED99708C325D540763EF6B278B4EE2A17DAC0A3B`.
 
-All listed filenames resolve under `public/assets`. Legacy v0.4–0.7 sources and their historical evidence below remain intact. Runtime generation, external image services and new rendering dependencies are absent. Campaign projectile roots are measured from the visible weapon/hand; the hero's v0.7 pipe registration and combat tuning remain unchanged.
+All 23 selected campaign sources in the prompt manifest resolve under `public/assets`. Legacy v0.4–0.7 sources and their historical evidence below remain intact. Runtime generation, external image services and new rendering dependencies are absent. Campaign projectile roots are measured from the visible weapon/hand; the hero's v0.7 pipe registration and combat tuning remain unchanged. The wreck uses the game's nearest-neighbor pixelArt renderer and the existing required-image error/retry path; the montage remains unchanged.
 
 | Asset | Role | Import |
 | --- | --- | --- |

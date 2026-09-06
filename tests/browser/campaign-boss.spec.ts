@@ -21,11 +21,13 @@ test('Miller retreat remains inside the native world and on the ground at either
     await page.waitForTimeout(2600);
     const position = await page.evaluate(() => {
       const s = (window as any).__GAME__.scene.getScene('Game'), boss = s.enemies.getChildren()[0];
-      return { left: boss.body.left, right: boss.body.right, bottom: boss.body.bottom, width: s.level.width };
+      return { left: boss.body.left, right: boss.body.right, bottom: boss.body.bottom, grounded: boss.body.blocked.down || boss.body.touching.down, width: s.level.width };
     });
     expect(position.left).toBeGreaterThanOrEqual(0);
     expect(position.right).toBeLessThanOrEqual(position.width);
     expect(position.bottom).toBeLessThanOrEqual(312.1);
+    expect(position.bottom).toBeGreaterThanOrEqual(311.9);
+    expect(position.grounded).toBe(true);
   }
 });
 
@@ -45,11 +47,13 @@ test('native reinforcement knockback cannot push an actor through either world e
     await page.waitForTimeout(350);
     const position = await page.evaluate(() => {
       const s = (window as any).__GAME__.scene.getScene('Game'), helper = s.enemies.getChildren()[0];
-      return { left: helper.body.left, right: helper.body.right, bottom: helper.body.bottom, width: s.level.width };
+      return { left: helper.body.left, right: helper.body.right, bottom: helper.body.bottom, grounded: helper.body.blocked.down || helper.body.touching.down, width: s.level.width };
     });
     expect(position.left).toBeGreaterThanOrEqual(0);
     expect(position.right).toBeLessThanOrEqual(position.width);
     expect(position.bottom).toBeLessThanOrEqual(312.1);
+    expect(position.bottom).toBeGreaterThanOrEqual(311.9);
+    expect(position.grounded).toBe(true);
   }
 });
 

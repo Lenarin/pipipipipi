@@ -35,6 +35,7 @@ export function loadCampaignArt(scene: Phaser.Scene, base: string): void {
   for (const faction of FACTIONS) for (const role of ROLES) scene.load.image(`enemy-${faction}-${role}-source`, `${base}assets/enemy-${faction}-${role}-v8-source.png`);
   for (const theme of ['batumi', 'airport', 'suburb']) scene.load.image(`scene-${theme}`, `${base}assets/scene-${theme}-v8.png`);
   scene.load.image('story-v8-source', `${base}assets/story-v8-source.png`);
+  scene.load.image('landmark-wreck-source', `${base}assets/prop-plane-wreck-v8-source.png`);
 }
 
 const phaseFrames: Partial<Record<EnemyAttack, readonly (readonly number[])[]>> = {

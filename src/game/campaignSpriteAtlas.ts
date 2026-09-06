@@ -54,4 +54,20 @@ export function importCampaignSprites(scene: Phaser.Scene): void {
   const context = bottle.getContext('2d')!; context.imageSmoothingEnabled = false;
   context.drawImage(bottleSource, 1445, 450, 62, 41, 1, 3, 10, 6);
   registerCanvas(scene, 'projectile-bottle', bottle);
+  // The selected source has two isolated components. Register them separately so
+  // both the jet and its detached wing can rest on the same world floor.
+  const wreck = keyedCanvas(scene, 'landmark-wreck-source');
+  const pixels = wreck.getContext('2d')!.getImageData(0, 0, wreck.width, wreck.height).data;
+  const { labels, components } = findSpriteComponents(pixels, wreck.width, wreck.height, 2);
+  components.forEach((bounds, index) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = bounds.right - bounds.left + 1; canvas.height = bounds.bottom - bounds.top + 1;
+    const context = canvas.getContext('2d')!, data = context.createImageData(canvas.width, canvas.height);
+    for (let y = 0; y < canvas.height; y++) for (let x = 0; x < canvas.width; x++) {
+      const from = (bounds.top + y) * wreck.width + bounds.left + x;
+      if (labels[from] === bounds.id) data.data.set(pixels.subarray(from * 4, from * 4 + 4), (y * canvas.width + x) * 4);
+    }
+    context.putImageData(data, 0, 0);
+    registerCanvas(scene, index === 0 ? 'landmark-wreck' : 'landmark-wreck-debris', canvas);
+  });
 }
